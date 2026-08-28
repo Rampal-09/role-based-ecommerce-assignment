@@ -1,10 +1,10 @@
 import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { ShieldCheck, User as UserIcon, LogOut, LogIn, UserPlus, KeyRound } from 'lucide-react';
+import { ShieldCheck, LogOut, LogIn, UserPlus, ShoppingBag, PlusCircle, LayoutGrid } from 'lucide-react';
 
 const Navbar = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, isAdmin, isSales } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -69,6 +69,34 @@ const Navbar = () => {
             Home
           </Link>
 
+          {/* Products link visible to all visitors */}
+          <Link
+            to="/products"
+            className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center space-x-1.5 ${
+              isActive('/products')
+                ? 'bg-brand-gradient text-white shadow-brand-glow'
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+            }`}
+          >
+            <LayoutGrid className="w-4 h-4" />
+            <span>Products</span>
+          </Link>
+
+          {/* Add Product link visible ONLY to Admin and Sales */}
+          {(isAdmin || isSales) && (
+            <Link
+              to="/products/new"
+              className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center space-x-1.5 ${
+                isActive('/products/new')
+                  ? 'bg-brand-gradient text-white shadow-brand-glow'
+                  : 'text-indigo-600 hover:bg-indigo-50 font-bold'
+              }`}
+            >
+              <PlusCircle className="w-4 h-4" />
+              <span>Add Product</span>
+            </Link>
+          )}
+
           <Link
             to="/test-access"
             className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center space-x-1.5 ${
@@ -78,7 +106,8 @@ const Navbar = () => {
             }`}
           >
             <ShieldCheck className="w-4 h-4" />
-            <span>RBAC Live Test</span>
+            <span className="hidden md:inline">RBAC Live Test</span>
+            <span className="md:hidden">RBAC</span>
           </Link>
         </nav>
 
