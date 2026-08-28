@@ -8,7 +8,6 @@ import ProtectedRoute from './components/ProtectedRoute';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
-import TestAccessPage from './pages/TestAccessPage';
 import ProductsPage from './pages/ProductsPage';
 import ProductDetailsPage from './pages/ProductDetailsPage';
 import AddProductPage from './pages/AddProductPage';
@@ -77,7 +76,6 @@ const AppLayout = () => {
           />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
-          <Route path="/test-access" element={<TestAccessPage />} />
         </Routes>
       </main>
     </div>

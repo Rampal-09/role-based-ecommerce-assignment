@@ -87,14 +87,6 @@ export default function HomePage() {
                 <span>My Past Orders</span>
               </Link>
             )}
-
-            <Link
-              to="/test-access"
-              className="px-5 py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-semibold rounded-2xl transition-colors flex items-center space-x-1.5"
-            >
-              <ShieldCheck className="w-4 h-4 text-indigo-600" />
-              <span>RBAC Live Matrix</span>
-            </Link>
           </div>
         </div>
       </div>
@@ -181,8 +173,8 @@ export default function HomePage() {
                 <Layers className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="font-bold text-sm text-slate-900">Multi-Role RBAC</h4>
-                <p className="text-xs text-slate-500 mt-0.5">Tailored controls for Admins, Sales, and Users</p>
+                <h4 className="font-bold text-sm text-slate-900">Enterprise Security</h4>
+                <p className="text-xs text-slate-500 mt-0.5">Secure authentication and robust data protection</p>
               </div>
             </div>
           </div>
@@ -197,12 +189,10 @@ export default function HomePage() {
               CH
             </div>
             <span className="font-bold text-slate-200">CommerceHub</span>
-            <span>&bull; Role-Based E-Commerce Platform</span>
           </div>
 
           <div className="flex items-center space-x-4 text-slate-400 text-xs">
             <Link to="/products" className="hover:text-white transition-colors">Catalog</Link>
-            <Link to="/test-access" className="hover:text-white transition-colors">RBAC Matrix</Link>
             <Link to="/login" className="hover:text-white transition-colors">Sign In</Link>
           </div>
 

@@ -152,14 +152,6 @@ const AdminDashboardPage = () => {
             <PlusCircle className="w-4 h-4" />
             <span>Add Product</span>
           </Link>
-
-          <Link
-            to="/test-access"
-            className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-2xl transition-colors flex items-center space-x-1.5"
-          >
-            <ShieldCheck className="w-4 h-4 text-indigo-600" />
-            <span>RBAC Matrix</span>
-          </Link>
         </div>
       </div>
 
