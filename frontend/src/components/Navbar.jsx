@@ -30,29 +30,6 @@ const Navbar = () => {
     navigate('/login');
   };
 
-  const getRoleBadge = (role) => {
-    switch (role) {
-      case 'admin':
-        return (
-          <span className="px-2 py-0.5 text-[10px] font-black uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200 rounded-full">
-            Admin
-          </span>
-        );
-      case 'sales':
-        return (
-          <span className="px-2 py-0.5 text-[10px] font-black uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200 rounded-full">
-            Sales
-          </span>
-        );
-      default:
-        return (
-          <span className="px-2 py-0.5 text-[10px] font-black uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-full">
-            Customer
-          </span>
-        );
-    }
-  };
-
   const isActive = (path) => location.pathname === path;
   const isInternalStaff = isAdmin || isSales;
 
@@ -76,12 +53,10 @@ const Navbar = () => {
               </button>
             )}
 
-            {/* Brand Logo - for Customer & Guests, or on mobile for staff */}
+            {/* Brand Logo */}
             <Link
               to="/"
-              className={`flex items-center space-x-3 group ${
-                isInternalStaff ? 'lg:hidden' : 'flex'
-              }`}
+              className="flex items-center space-x-3 group"
             >
               <div className="w-10 h-10 rounded-2xl bg-brand-gradient text-white font-black text-lg shadow-brand-glow flex items-center justify-center font-display group-hover:scale-105 transition-transform">
                 CH
@@ -90,20 +65,8 @@ const Navbar = () => {
                 <span className="font-display font-bold text-lg text-slate-900 tracking-tight block">
                   CommerceHub
                 </span>
-                <span className="text-[10px] font-extrabold text-indigo-600 uppercase tracking-widest block -mt-1">
-                  Role-Based RBAC
-                </span>
               </div>
             </Link>
-
-            {/* Staff portal title on Desktop */}
-            {isInternalStaff && (
-              <div className="hidden lg:flex items-center space-x-2">
-                <span className="text-xs font-black uppercase tracking-wider text-slate-400">
-                  {isAdmin ? 'Administrator Portal' : 'Sales Merchant Portal'}
-                </span>
-              </div>
-            )}
           </div>
 
           {/* Desktop Navigation Links (Only for Customers & Guests, NOT duplicated for Staff) */}
@@ -147,19 +110,6 @@ const Navbar = () => {
                   <span>My Orders</span>
                 </Link>
               )}
-
-              {/* RBAC Live Test */}
-              <Link
-                to="/test-access"
-                className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center space-x-1.5 ${
-                  isActive('/test-access')
-                    ? 'bg-brand-gradient text-white shadow-brand-glow'
-                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-                }`}
-              >
-                <ShieldCheck className="w-4 h-4" />
-                <span>RBAC Test</span>
-              </Link>
             </nav>
           )}
 
@@ -213,12 +163,9 @@ const Navbar = () => {
                     {user.name ? user.name.slice(0, 2) : 'U'}
                   </div>
                   <div className="text-left hidden sm:block">
-                    <div className="text-xs font-bold text-slate-800 leading-tight">
+                    <span className="text-xs font-bold text-slate-800 leading-tight block">
                       {user.name}
-                    </div>
-                    <div className="flex items-center space-x-1 mt-0.5">
-                      {getRoleBadge(user.role)}
-                    </div>
+                    </span>
                   </div>
                 </div>
 

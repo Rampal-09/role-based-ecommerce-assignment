@@ -20,7 +20,7 @@ import {
 
 const ProductDetailsPage = () => {
   const { id } = useParams();
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, isSales } = useAuth();
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const navigate = useNavigate();
@@ -93,12 +93,13 @@ const ProductDetailsPage = () => {
 
   const isOutOfStock = product.stock <= 0;
   const inWishlist = isInWishlist(product._id);
+  const isInternalStaff = isAdmin || isSales;
 
   // Check if current user is Admin OR owner of this product
   const ownerId = typeof product.owner === 'object' ? product.owner?._id : product.owner;
   const currentUserId = user?._id || user?.id;
   const isOwner = ownerId && currentUserId && ownerId.toString() === currentUserId.toString();
-  const canManageProduct = isAdmin || isOwner;
+  const canManageProduct = isAdmin || (isSales && isOwner);
 
   const formattedPrice = new Intl.NumberFormat('en-IN', {
     style: 'currency',
@@ -272,7 +273,7 @@ const ProductDetailsPage = () => {
             </div>
 
             {/* Cart & Wishlist Actions (Customer Only) */}
-            {!isAdmin && !isSales ? (
+            {!isInternalStaff ? (
               <>
                 {/* Quantity Picker */}
                 {!isOutOfStock && (
@@ -376,27 +377,9 @@ const ProductDetailsPage = () => {
             ) : (
               <div className="mb-6 p-4 bg-slate-50 border border-slate-200 rounded-2xl text-xs text-slate-600">
                 <span className="font-bold text-slate-800 block mb-1">
-                  Merchant / Admin Account Mode
+                  Management Account Mode
                 </span>
-                Shopping cart and wishlist actions are reserved for Customer accounts. Use the management buttons above to update or remove this catalog listing.
-              </div>
-            )}
-
-            {/* Seller Information */}
-            {product.owner && (
-              <div className="pt-5 border-t border-slate-100">
-                <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">
-                  Verified Merchant / Owner
-                </h3>
-                <div className="flex items-center space-x-3 bg-slate-50 p-3 rounded-2xl border border-slate-200/70">
-                  <div className="w-8 h-8 rounded-xl bg-brand-gradient text-white font-bold text-xs flex items-center justify-center shadow-xs">
-                    {product.owner.name ? product.owner.name.slice(0, 2).toUpperCase() : 'M'}
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-900">{product.owner.name}</p>
-                    <p className="text-[11px] text-slate-500">{product.owner.email}</p>
-                  </div>
-                </div>
+                Shopping cart and wishlist actions are reserved for customer accounts. Use the management buttons above to update or remove this catalog listing.
               </div>
             )}
           </div>

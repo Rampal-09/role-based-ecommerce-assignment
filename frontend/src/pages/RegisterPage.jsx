@@ -61,11 +61,6 @@ const RegisterPage = () => {
           <p className="text-xs sm:text-sm text-slate-600 mt-1">
             Register your account to get started
           </p>
-
-          <div className="mt-3 inline-flex items-center space-x-1.5 px-3 py-1 bg-indigo-50/80 border border-indigo-100 rounded-full text-[11px] font-semibold text-indigo-700">
-            <ShieldCheck className="w-3.5 h-3.5 text-indigo-600" />
-            <span>Default Registration Role: Customer (User)</span>
-          </div>
         </div>
 
         {/* Success Alert */}

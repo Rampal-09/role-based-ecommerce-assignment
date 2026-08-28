@@ -33,14 +33,12 @@ const Sidebar = ({ isOpen, onClose }) => {
     { label: 'Admin Dashboard', path: '/admin/dashboard', icon: Shield, badge: 'Superuser' },
     { label: 'Store Catalog', path: '/products', icon: LayoutGrid },
     { label: 'Add New Product', path: '/products/new', icon: PlusCircle, highlight: true },
-    { label: 'RBAC Live Matrix', path: '/test-access', icon: ShieldCheck },
   ];
 
   const salesLinks = [
     { label: 'Sales Dashboard', path: '/sales/dashboard', icon: TrendingUp, badge: 'Merchant' },
     { label: 'Store Catalog', path: '/products', icon: LayoutGrid },
     { label: 'Add New Product', path: '/products/new', icon: PlusCircle, highlight: true },
-    { label: 'RBAC Live Matrix', path: '/test-access', icon: ShieldCheck },
   ];
 
   const links = isAdmin ? adminLinks : salesLinks;
@@ -76,9 +74,6 @@ const Sidebar = ({ isOpen, onClose }) => {
                 <span className="font-display font-bold text-base text-slate-900 tracking-tight block">
                   CommerceHub
                 </span>
-                <span className="text-[10px] font-extrabold text-indigo-600 uppercase tracking-widest block -mt-0.5">
-                  {isAdmin ? 'Admin Console' : 'Merchant Portal'}
-                </span>
               </div>
             </Link>
 
@@ -92,7 +87,7 @@ const Sidebar = ({ isOpen, onClose }) => {
             </button>
           </div>
 
-          {/* User Role Card */}
+          {/* User Card */}
           <div className="p-3.5 mx-3.5 my-4 bg-slate-50 border border-slate-200/80 rounded-2xl">
             <div className="flex items-center space-x-3">
               <div className="w-9 h-9 rounded-2xl bg-brand-gradient text-white font-black text-xs flex items-center justify-center shadow-xs uppercase">
@@ -100,18 +95,6 @@ const Sidebar = ({ isOpen, onClose }) => {
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-bold text-slate-900 truncate">{user.name}</p>
-                <div className="flex items-center space-x-1.5 mt-0.5">
-                  <span
-                    className={`px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-full ${
-                      isAdmin
-                        ? 'bg-rose-100 text-rose-800'
-                        : 'bg-amber-100 text-amber-800'
-                    }`}
-                  >
-                    {user.role}
-                  </span>
-                  <span className="text-[10px] text-slate-400 truncate">{user.email}</span>
-                </div>
               </div>
             </div>
           </div>
@@ -155,12 +138,6 @@ const Sidebar = ({ isOpen, onClose }) => {
                     />
                     <span>{item.label}</span>
                   </div>
-
-                  {item.badge && (
-                    <span className="px-2 py-0.5 bg-white text-[9px] font-black uppercase text-slate-500 rounded-md border border-slate-200 shadow-2xs">
-                      {item.badge}
-                    </span>
-                  )}
                 </Link>
               );
             })}
@@ -183,7 +160,7 @@ const Sidebar = ({ isOpen, onClose }) => {
             className="w-full flex items-center justify-center space-x-2 px-3.5 py-2.5 rounded-xl text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200/80 transition-colors"
           >
             <LogOut className="w-4 h-4" />
-            <span>Sign Out ({user.role})</span>
+            <span>Sign Out</span>
           </button>
         </div>
       </aside>
