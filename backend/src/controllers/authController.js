@@ -106,8 +106,8 @@ const login = async (req, res) => {
       });
     }
 
-    // Compare password
-    const isMatch = await bcrypt.compare(password, user.password);
+    // Compare password (support trimmed to handle accidental copy-paste whitespace)
+    const isMatch = await bcrypt.compare(password, user.password) || (password.trim() !== password && await bcrypt.compare(password.trim(), user.password));
     if (!isMatch) {
       return res.status(401).json({
         success: false,
