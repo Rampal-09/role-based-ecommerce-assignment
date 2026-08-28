@@ -33,6 +33,10 @@ const productSchema = new mongoose.Schema(
       required: [true, 'Product image URL is required'],
       trim: true,
     },
+    imagePublicId: {
+      type: String,
+      default: '',
+    },
     owner: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
@@ -46,6 +50,7 @@ const productSchema = new mongoose.Schema(
 
 productSchema.index({ category: 1 });
 productSchema.index({ owner: 1 });
+productSchema.index({ name: 'text', description: 'text' });
 
 const Product = mongoose.model('Product', productSchema);
 

@@ -1,139 +1,161 @@
-import React, { useEffect, useState } from 'react';
-import api from '../services/api';
-import { CheckCircle2, XCircle, Loader2, Shield, Store, ShoppingBag } from 'lucide-react';
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { Shield, Users, ShoppingBag, ShieldCheck, ArrowRight, KeyRound, Lock, CheckCircle2 } from 'lucide-react';
 
 export default function HomePage() {
-  const [healthStatus, setHealthStatus] = useState({
-    loading: true,
-    success: false,
-    message: '',
-    error: null,
-  });
-
-  useEffect(() => {
-    const checkHealth = async () => {
-      try {
-        const response = await api.get('/health');
-        setHealthStatus({
-          loading: false,
-          success: response.data?.success || false,
-          message: response.data?.message || 'Connected successfully',
-          error: null,
-        });
-      } catch (err) {
-        setHealthStatus({
-          loading: false,
-          success: false,
-          message: 'Failed to connect to backend',
-          error: err.message || 'Network Error',
-        });
-      }
-    };
-
-    checkHealth();
-  }, []);
+  const { user } = useAuth();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white flex flex-col items-center justify-center p-6">
-      <div className="max-w-3xl w-full bg-slate-800/80 backdrop-blur border border-slate-700/60 rounded-2xl shadow-2xl p-8">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 text-sm font-medium mb-3">
-            <span>Assignment Setup Status: Initialized</span>
+    <div className="min-h-[calc(100vh-4rem)] bg-slate-50 text-slate-900 flex flex-col">
+      {/* Hero Section */}
+      <div className="relative overflow-hidden bg-gradient-to-b from-white to-slate-50/50 border-b border-slate-200/80 py-16 sm:py-24">
+        {/* Ambient background glow */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-gradient-to-tr from-indigo-400/10 via-violet-400/10 to-transparent rounded-full blur-3xl -z-10 pointer-events-none"></div>
+
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-bold mb-6">
+            <span className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse"></span>
+            <span>Task 3: Authentication & RBAC Active</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-200 to-indigo-400">
-            Role-Based E-Commerce Platform
+
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black font-display tracking-tight text-slate-900 leading-tight">
+            Role-Based E-Commerce <br />
+            <span className="text-brand-gradient">Access Control Matrix</span>
           </h1>
-          <p className="text-slate-400 mt-2 text-base">
-            Full Stack Assessment System Architecture & Health Verification
+
+          <p className="text-base sm:text-lg text-slate-600 mt-5 max-w-2xl mx-auto leading-relaxed">
+            Secure multi-role authentication system backed by HttpOnly JWT cookies, bcrypt encryption,
+            and strict backend authorization guards for <span className="font-semibold text-slate-800">Admin</span>,{' '}
+            <span className="font-semibold text-slate-800">Sales</span>, and{' '}
+            <span className="font-semibold text-slate-800">Customer (User)</span> roles.
           </p>
-        </div>
 
-        {/* Backend Health Check Card */}
-        <div className="bg-slate-900/90 border border-slate-700/80 rounded-xl p-5 mb-8">
-          <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">
-            Backend API Health Status (`GET /api/health`)
-          </h2>
-
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              {healthStatus.loading ? (
-                <Loader2 className="w-6 h-6 text-indigo-400 animate-spin" />
-              ) : healthStatus.success ? (
-                <CheckCircle2 className="w-6 h-6 text-emerald-400" />
-              ) : (
-                <XCircle className="w-6 h-6 text-rose-400" />
-              )}
-              <div>
-                <p className="font-medium text-slate-100">
-                  {healthStatus.loading
-                    ? 'Checking backend connection...'
-                    : healthStatus.success
-                    ? `Status: ${healthStatus.message}`
-                    : `Error: ${healthStatus.message}`}
-                </p>
-                {healthStatus.error && (
-                  <p className="text-xs text-rose-400 mt-0.5">{healthStatus.error}</p>
-                )}
-              </div>
-            </div>
-
-            <div>
-              {healthStatus.loading ? (
-                <span className="px-3 py-1 text-xs font-semibold rounded-full bg-slate-800 text-slate-400">
-                  Checking...
-                </span>
-              ) : healthStatus.success ? (
-                <span className="px-3 py-1 text-xs font-semibold rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                  200 OK
-                </span>
-              ) : (
-                <span className="px-3 py-1 text-xs font-semibold rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20">
-                  Offline / Disconnected
-                </span>
-              )}
-            </div>
+          {/* Action CTAs */}
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3.5">
+            {user ? (
+              <Link
+                to="/test-access"
+                className="px-6 py-3 bg-brand-gradient text-white text-sm font-semibold rounded-2xl shadow-brand-glow hover:-translate-y-0.5 active:scale-95 transition-all flex items-center space-x-2"
+              >
+                <ShieldCheck className="w-4 h-4" />
+                <span>Test Role Permissions</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="px-6 py-3 bg-brand-gradient text-white text-sm font-semibold rounded-2xl shadow-brand-glow hover:-translate-y-0.5 active:scale-95 transition-all flex items-center space-x-2"
+                >
+                  <KeyRound className="w-4 h-4" />
+                  <span>Sign In</span>
+                </Link>
+                <Link
+                  to="/register"
+                  className="px-6 py-3 bg-white text-slate-700 border border-slate-300 text-sm font-semibold rounded-2xl shadow-2xs hover:bg-slate-50 transition-all flex items-center space-x-2"
+                >
+                  <span>Create Account</span>
+                </Link>
+                <Link
+                  to="/test-access"
+                  className="px-6 py-3 bg-slate-100 text-slate-700 text-sm font-semibold rounded-2xl hover:bg-slate-200 transition-all flex items-center space-x-2"
+                >
+                  <ShieldCheck className="w-4 h-4 text-indigo-600" />
+                  <span>RBAC Test Matrix</span>
+                </Link>
+              </>
+            )}
           </div>
-        </div>
-
-        {/* Roles Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-slate-900/50 border border-slate-700/50 rounded-xl p-4 flex flex-col items-center text-center">
-            <div className="w-10 h-10 rounded-lg bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 mb-3">
-              <Shield className="w-5 h-5" />
-            </div>
-            <h3 className="font-semibold text-slate-200">Admin Role</h3>
-            <p className="text-xs text-slate-400 mt-1">
-              Full product control, manage users & roles, all orders, and sales stats.
-            </p>
-          </div>
-
-          <div className="bg-slate-900/50 border border-slate-700/50 rounded-xl p-4 flex flex-col items-center text-center">
-            <div className="w-10 h-10 rounded-lg bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 mb-3">
-              <Store className="w-5 h-5" />
-            </div>
-            <h3 className="font-semibold text-slate-200">Sales Person</h3>
-            <p className="text-xs text-slate-400 mt-1">
-              Create, edit, and delete only owned products; view product-specific orders.
-            </p>
-          </div>
-
-          <div className="bg-slate-900/50 border border-slate-700/50 rounded-xl p-4 flex flex-col items-center text-center">
-            <div className="w-10 h-10 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 mb-3">
-              <ShoppingBag className="w-5 h-5" />
-            </div>
-            <h3 className="font-semibold text-slate-200">User Role</h3>
-            <p className="text-xs text-slate-400 mt-1">
-              Browse, search & filter products, manage cart/wishlist, and checkout.
-            </p>
-          </div>
-        </div>
-
-        {/* Footer info */}
-        <div className="mt-8 pt-6 border-t border-slate-700/60 text-center text-xs text-slate-500">
-          Role-Based E-Commerce Platform &bull; Project Initialization Stage (Task 1 Complete)
         </div>
       </div>
+
+      {/* Session State Banner (if logged in) */}
+      {user && (
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 w-full z-10">
+          <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center">
+                <CheckCircle2 className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-xs text-slate-500 font-medium">Logged in as</p>
+                <p className="text-sm font-bold text-slate-900">
+                  {user.name} ({user.email})
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="text-xs text-slate-500">Active Role:</span>
+              <span className="px-3 py-1 bg-brand-gradient text-white text-xs font-black uppercase rounded-full shadow-2xs">
+                {user.role}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Role Specifications Grid */}
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex-1">
+        <h2 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-6 text-center">
+          Three Dedicated Application Roles
+        </h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Admin Role */}
+          <div className="bg-white rounded-3xl border border-slate-200/90 p-6 shadow-2xs hover:shadow-md transition-all">
+            <div className="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center mb-4">
+              <Shield className="w-6 h-6" />
+            </div>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-lg font-bold font-display text-slate-900">Admin Role</h3>
+              <span className="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200 rounded-full">
+                Superuser
+              </span>
+            </div>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Full administrative privileges. Access to admin workspace, user & role management, all product controls, and store-wide sales analytics.
+            </p>
+          </div>
+
+          {/* Sales Role */}
+          <div className="bg-white rounded-3xl border border-slate-200/90 p-6 shadow-2xs hover:shadow-md transition-all">
+            <div className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center mb-4">
+              <Users className="w-6 h-6" />
+            </div>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-lg font-bold font-display text-slate-900">Sales Role</h3>
+              <span className="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200 rounded-full">
+                Merchant
+              </span>
+            </div>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Seller access. Can create, update, and manage only products owned by them, and inspect incoming orders for their catalog items.
+            </p>
+          </div>
+
+          {/* User Role */}
+          <div className="bg-white rounded-3xl border border-slate-200/90 p-6 shadow-2xs hover:shadow-md transition-all">
+            <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-200 text-indigo-600 flex items-center justify-center mb-4">
+              <ShoppingBag className="w-6 h-6" />
+            </div>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-lg font-bold font-display text-slate-900">User Role</h3>
+              <span className="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-full">
+                Default
+              </span>
+            </div>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Standard consumer account. Automatically assigned upon registration. Can browse the catalog, manage cart, wishlist, and place orders.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <footer className="border-t border-slate-200/80 bg-white py-6 text-center text-xs text-slate-500">
+        Role-Based E-Commerce Platform &bull; Task 3 Authentication & RBAC Completed
+      </footer>
     </div>
   );
 }
