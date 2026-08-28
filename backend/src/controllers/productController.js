@@ -141,7 +141,7 @@ const createProduct = async (req, res) => {
     let imagePublicId = '';
 
     if (req.file) {
-      uploadedCloudinaryAsset = await uploadToCloudinary(req.file.buffer, 'products');
+      uploadedCloudinaryAsset = await uploadToCloudinary(req.file.buffer, 'products', req.file.mimetype);
       imageUrl = uploadedCloudinaryAsset.url;
       imagePublicId = uploadedCloudinaryAsset.public_id;
     } else if (req.body.image && req.body.image.trim()) {
@@ -275,7 +275,7 @@ const updateProduct = async (req, res) => {
 
     // Handle New Image Upload
     if (req.file) {
-      newUploadedAsset = await uploadToCloudinary(req.file.buffer, 'products');
+      newUploadedAsset = await uploadToCloudinary(req.file.buffer, 'products', req.file.mimetype);
 
       // Delete old image from Cloudinary if existing
       if (product.imagePublicId) {
