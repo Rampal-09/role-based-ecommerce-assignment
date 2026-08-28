@@ -225,11 +225,11 @@ const CartPage = () => {
             return (
               <div
                 key={product._id}
-                className="bg-white rounded-3xl border border-slate-200/90 p-4 sm:p-6 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+                className="bg-white rounded-2xl border border-slate-200/90 p-3.5 sm:p-4 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4"
               >
                 {/* Product Thumbnail & Info */}
-                <div className="flex items-center space-x-4 w-full sm:w-auto">
-                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-slate-100 overflow-hidden border border-slate-200/80 flex-shrink-0">
+                <div className="flex items-center space-x-3 sm:space-x-4 w-full sm:w-auto">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-slate-100 overflow-hidden border border-slate-200/80 flex-shrink-0">
                     <img
                       src={product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&auto=format&fit=crop&q=60'}
                       alt={product.name}
@@ -242,12 +242,12 @@ const CartPage = () => {
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <span className="px-2 py-0.5 bg-slate-100 text-slate-700 text-[10px] font-bold rounded-full uppercase">
+                    <span className="px-2 py-0.5 bg-slate-100 text-slate-700 text-[10px] font-bold rounded-md uppercase">
                       {product.category}
                     </span>
                     <Link
                       to={`/products/${product._id}`}
-                      className="font-display font-bold text-slate-900 text-sm sm:text-base hover:text-indigo-600 transition-colors block truncate mt-1"
+                      className="font-display font-bold text-slate-900 text-sm hover:text-indigo-600 transition-colors block truncate mt-0.5"
                     >
                       {product.name}
                     </Link>
@@ -258,43 +258,43 @@ const CartPage = () => {
                 </div>
 
                 {/* Quantity Controls & Subtotal */}
-                <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto space-x-4 sm:space-x-8 pt-3 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+                <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto space-x-3 sm:space-x-6 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
                   {/* Quantity picker */}
                   <div>
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block sm:hidden mb-1">
+                    <span className="text-[9px] uppercase font-bold text-slate-400 block sm:hidden mb-0.5">
                       Qty
                     </span>
-                    <div className="inline-flex items-center space-x-1.5 bg-slate-50 border border-slate-200 rounded-2xl p-1 shadow-2xs">
+                    <div className="inline-flex items-center space-x-1 bg-slate-50 border border-slate-200 rounded-xl p-1 shadow-2xs">
                       <button
                         onClick={() => updateQuantity(product._id, item.quantity - 1)}
                         disabled={item.quantity <= 1 || isProcessing}
-                        className="p-1.5 rounded-xl hover:bg-white text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                        className="p-1 rounded-lg hover:bg-white text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                         title="Decrease quantity"
                       >
-                        <Minus className="w-3.5 h-3.5" />
+                        <Minus className="w-3 h-3" />
                       </button>
 
-                      <span className="w-8 text-center text-xs sm:text-sm font-bold text-slate-900 font-display">
+                      <span className="w-6 text-center text-xs font-bold text-slate-900 font-display">
                         {item.quantity}
                       </span>
 
                       <button
                         onClick={() => updateQuantity(product._id, item.quantity + 1)}
                         disabled={isAtMaxStock || isProcessing}
-                        className="p-1.5 rounded-xl hover:bg-white text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                        className="p-1 rounded-lg hover:bg-white text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                         title={isAtMaxStock ? 'Maximum stock reached' : 'Increase quantity'}
                       >
-                        <Plus className="w-3.5 h-3.5" />
+                        <Plus className="w-3 h-3" />
                       </button>
                     </div>
                   </div>
 
                   {/* Item Subtotal */}
-                  <div className="text-right min-w-[80px]">
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block">
+                  <div className="text-right min-w-[70px]">
+                    <span className="text-[9px] uppercase font-bold text-slate-400 block">
                       Total
                     </span>
-                    <span className="text-sm sm:text-base font-black font-display text-slate-900">
+                    <span className="text-sm font-black font-display text-slate-900">
                       {formatCurrency(itemSubtotal)}
                     </span>
                   </div>
@@ -303,10 +303,10 @@ const CartPage = () => {
                   <button
                     onClick={() => removeFromCart(product._id)}
                     disabled={isProcessing}
-                    className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors disabled:opacity-40"
+                    className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-40"
                     title="Remove item"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>
@@ -315,8 +315,8 @@ const CartPage = () => {
         </div>
 
         {/* Right Column: Order Summary Card */}
-        <div className="lg:col-span-4 bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 shadow-sm">
-          <h2 className="text-lg font-bold font-display text-slate-900 mb-6">
+        <div className="lg:col-span-4 bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-sm">
+          <h2 className="text-base font-bold font-display text-slate-900 mb-4">
             Order Summary
           </h2>
 

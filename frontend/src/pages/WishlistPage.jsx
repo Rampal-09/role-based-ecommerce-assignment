@@ -102,7 +102,7 @@ const WishlistPage = () => {
       </div>
 
       {/* Wishlist Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
         {wishlist.products.map((product) => {
           if (!product) return null;
           const isOutOfStock = product.stock <= 0;
@@ -110,15 +110,15 @@ const WishlistPage = () => {
           return (
             <div
               key={product._id}
-              className="group bg-white rounded-3xl border border-slate-200/90 overflow-hidden shadow-2xs hover:shadow-xl hover:-translate-y-1 hover:border-violet-200/60 transition-all duration-300 flex flex-col justify-between"
+              className="group bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-2xs hover:shadow-lg hover:-translate-y-0.5 hover:border-violet-200/60 transition-all duration-200 flex flex-col justify-between"
             >
               {/* Product Image */}
-              <div className="relative aspect-square bg-slate-100 overflow-hidden">
+              <div className="relative h-44 sm:h-48 w-full bg-slate-100 overflow-hidden">
                 <Link to={`/products/${product._id}`}>
                   <img
                     src={product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&auto=format&fit=crop&q=60'}
                     alt={product.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     onError={(e) => {
                       e.target.onerror = null;
                       e.target.src = 'https://images.unsplash.com/photo-1558060370-d644479cb6f7?w=600&auto=format&fit=crop&q=80';
@@ -126,8 +126,8 @@ const WishlistPage = () => {
                   />
                 </Link>
 
-                <div className="absolute top-3 left-3">
-                  <span className="px-2.5 py-1 bg-white/90 backdrop-blur-md border border-slate-200/80 text-slate-800 text-[10px] font-bold rounded-full shadow-2xs uppercase tracking-wider">
+                <div className="absolute top-2.5 left-2.5">
+                  <span className="px-2 py-0.5 bg-white/90 backdrop-blur-md border border-slate-200/80 text-slate-800 text-[10px] font-bold rounded-md shadow-2xs uppercase tracking-wider">
                     {product.category}
                   </span>
                 </div>
@@ -135,33 +135,33 @@ const WishlistPage = () => {
                 {/* Remove from wishlist button */}
                 <button
                   onClick={() => removeFromWishlist(product._id)}
-                  className="absolute top-3 right-3 p-2 bg-white/90 hover:bg-red-50 text-slate-400 hover:text-red-600 rounded-full backdrop-blur-md shadow-sm transition-colors"
+                  className="absolute top-2.5 right-2.5 p-1.5 bg-white/90 hover:bg-red-50 text-slate-400 hover:text-red-600 rounded-full backdrop-blur-md shadow-2xs transition-colors"
                   title="Remove from wishlist"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="w-3.5 h-3.5" />
                 </button>
               </div>
 
               {/* Info & Action */}
-              <div className="p-5 flex-1 flex flex-col justify-between">
+              <div className="p-3.5 sm:p-4 flex-1 flex flex-col justify-between">
                 <div>
                   <Link to={`/products/${product._id}`}>
-                    <h3 className="font-display font-bold text-slate-900 text-base group-hover:text-indigo-600 transition-colors line-clamp-1">
+                    <h3 className="font-display font-bold text-slate-900 text-sm group-hover:text-indigo-600 transition-colors line-clamp-1">
                       {product.name}
                     </h3>
                   </Link>
 
-                  <div className="mt-2 flex items-center justify-between">
-                    <span className="text-lg font-black font-display text-slate-900">
+                  <div className="mt-1.5 flex items-center justify-between">
+                    <span className="text-sm sm:text-base font-black font-display text-slate-900">
                       {formatCurrency(product.price)}
                     </span>
 
                     {isOutOfStock ? (
-                      <span className="px-2 py-0.5 bg-rose-50 text-rose-700 border border-rose-200 text-[10px] font-bold rounded-full">
+                      <span className="px-1.5 py-0.5 bg-rose-50 text-rose-700 border border-rose-200 text-[9px] font-bold rounded-md">
                         Out of Stock
                       </span>
                     ) : (
-                      <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold rounded-full">
+                      <span className="px-1.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[9px] font-bold rounded-md">
                         In Stock
                       </span>
                     )}
@@ -169,17 +169,17 @@ const WishlistPage = () => {
                 </div>
 
                 {/* Move to Cart button */}
-                <div className="mt-4 pt-4 border-t border-slate-100">
+                <div className="mt-3 pt-3 border-t border-slate-100">
                   <button
                     onClick={() => handleMoveToCart(product)}
                     disabled={isOutOfStock}
-                    className={`w-full py-2.5 px-3 text-xs font-bold rounded-xl transition-all flex items-center justify-center space-x-1.5 ${
+                    className={`w-full py-2 px-3 text-[11px] font-bold rounded-lg transition-all flex items-center justify-center space-x-1.5 ${
                       isOutOfStock
                         ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
                         : 'bg-brand-gradient text-white shadow-brand-glow hover:-translate-y-0.5 active:scale-95'
                     }`}
                   >
-                    <ShoppingCart className="w-3.5 h-3.5" />
+                    <ShoppingCart className="w-3 h-3" />
                     <span>Move to Cart</span>
                   </button>
                 </div>
