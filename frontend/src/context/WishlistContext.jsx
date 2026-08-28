@@ -9,9 +9,9 @@ export const WishlistProvider = ({ children }) => {
   const [wishlist, setWishlist] = useState({ products: [] });
   const [loading, setLoading] = useState(false);
 
-  // Fetch Wishlist from Backend
+  // Fetch Wishlist from Backend (Only for Customer accounts)
   const fetchWishlist = useCallback(async () => {
-    if (!user) {
+    if (!user || user.role !== 'user') {
       setWishlist({ products: [] });
       return;
     }
@@ -38,7 +38,14 @@ export const WishlistProvider = ({ children }) => {
   // Add item to Wishlist
   const addToWishlist = async (productId) => {
     if (!user) {
-      return { success: false, message: 'Please log in to save items to your wishlist.', requireAuth: true };
+      return { success: false, message: 'Please log in as a customer to save items to your wishlist.', requireAuth: true };
+    }
+
+    if (user.role !== 'user') {
+      return {
+        success: false,
+        message: 'Wishlist is available only for Customer accounts. Admin and Sales accounts manage store inventory.',
+      };
     }
 
     try {
@@ -56,7 +63,9 @@ export const WishlistProvider = ({ children }) => {
 
   // Remove item from Wishlist
   const removeFromWishlist = async (productId) => {
-    if (!user) return { success: false, message: 'Authentication required' };
+    if (!user || user.role !== 'user') {
+      return { success: false, message: 'Customer authentication required' };
+    }
 
     try {
       const res = await wishlistService.removeFromWishlist(productId);
@@ -103,3 +112,5 @@ export const useWishlist = () => {
   }
   return context;
 };
+
+export default WishlistContext;

@@ -9,9 +9,9 @@ export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState({ items: [] });
   const [loading, setLoading] = useState(false);
 
-  // Fetch Cart from Backend
+  // Fetch Cart from Backend (Only for Customer accounts)
   const fetchCart = useCallback(async () => {
-    if (!user) {
+    if (!user || user.role !== 'user') {
       setCart({ items: [] });
       return;
     }
@@ -38,7 +38,14 @@ export const CartProvider = ({ children }) => {
   // Add item to cart
   const addToCart = async (productId, quantity = 1) => {
     if (!user) {
-      return { success: false, message: 'Please log in to add items to your cart.', requireAuth: true };
+      return { success: false, message: 'Please log in as a customer to add items to cart.', requireAuth: true };
+    }
+
+    if (user.role !== 'user') {
+      return {
+        success: false,
+        message: 'Shopping cart is available only for Customer accounts. Admin and Sales accounts manage store inventory.',
+      };
     }
 
     try {
@@ -56,15 +63,17 @@ export const CartProvider = ({ children }) => {
 
   // Update item quantity in cart
   const updateQuantity = async (productId, quantity) => {
-    if (!user) return { success: false, message: 'Authentication required' };
+    if (!user || user.role !== 'user') {
+      return { success: false, message: 'Customer authentication required' };
+    }
 
     try {
-      const res = await cartService.updateQuantity(productId, quantity);
+      const res = await cartService.updateCartQuantity(productId, quantity);
       if (res.success && res.data) {
         setCart(res.data);
         return { success: true };
       }
-      return { success: false, message: res.message };
+      return { success: false, message: res.message || 'Failed to update quantity' };
     } catch (err) {
       const message = err.response?.data?.message || 'Error updating quantity.';
       return { success: false, message };
@@ -73,7 +82,9 @@ export const CartProvider = ({ children }) => {
 
   // Remove item from cart
   const removeFromCart = async (productId) => {
-    if (!user) return { success: false, message: 'Authentication required' };
+    if (!user || user.role !== 'user') {
+      return { success: false, message: 'Customer authentication required' };
+    }
 
     try {
       const res = await cartService.removeFromCart(productId);
@@ -81,36 +92,38 @@ export const CartProvider = ({ children }) => {
         setCart(res.data);
         return { success: true };
       }
-      return { success: false, message: res.message };
+      return { success: false, message: res.message || 'Failed to remove product from cart' };
     } catch (err) {
       const message = err.response?.data?.message || 'Error removing item from cart.';
       return { success: false, message };
     }
   };
 
-  // Calculate Cart Count: TOTAL QUANTITY (e.g. Shoes×2 + Watch×1 + Bag×3 = 6)
-  const cartCount = cart.items ? cart.items.reduce((total, item) => total + (item.quantity || 0), 0) : 0;
+  // Total item count across all quantities
+  const cartCount = cart.items.reduce((sum, item) => sum + (item.quantity || 0), 0);
 
-  // Calculate Cart Subtotal: sum(product.price * quantity)
-  const cartSubtotal = cart.items
-    ? cart.items.reduce((total, item) => {
-        const price = item.product?.price || 0;
-        return total + price * (item.quantity || 0);
-      }, 0)
-    : 0;
+  // Cart grand subtotal
+  const cartSubtotal = cart.items.reduce((sum, item) => {
+    const price = item.product?.price || 0;
+    return sum + price * (item.quantity || 0);
+  }, 0);
 
-  const value = {
-    cart,
-    cartCount,
-    cartSubtotal,
-    loading,
-    fetchCart,
-    addToCart,
-    updateQuantity,
-    removeFromCart,
-  };
-
-  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
+  return (
+    <CartContext.Provider
+      value={{
+        cart,
+        cartCount,
+        cartSubtotal,
+        loading,
+        fetchCart,
+        addToCart,
+        updateQuantity,
+        removeFromCart,
+      }}
+    >
+      {children}
+    </CartContext.Provider>
+  );
 };
 
 export const useCart = () => {
@@ -120,3 +133,5 @@ export const useCart = () => {
   }
   return context;
 };
+
+export default CartContext;

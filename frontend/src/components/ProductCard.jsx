@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, Eye, Heart, Check, Loader2 } from 'lucide-react';
+import { ShoppingCart, Eye, Heart, Check, Loader2, Edit3 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useAuth } from '../context/AuthContext';
 
 const ProductCard = ({ product }) => {
-  const { user } = useAuth();
+  const { user, isAdmin, isSales } = useAuth();
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const navigate = useNavigate();
@@ -18,6 +18,12 @@ const ProductCard = ({ product }) => {
 
   const isOutOfStock = product.stock <= 0;
   const inWishlist = isInWishlist(product._id);
+
+  // Check if current user is owner or admin
+  const ownerId = typeof product.owner === 'object' ? product.owner?._id : product.owner;
+  const currentUserId = user?._id || user?.id;
+  const canManage = isAdmin || (isSales && ownerId && currentUserId && ownerId.toString() === currentUserId.toString());
+  const isInternalStaff = isAdmin || isSales;
 
   // Format currency in INR
   const formattedPrice = new Intl.NumberFormat('en-IN', {
@@ -32,6 +38,12 @@ const ProductCard = ({ product }) => {
 
     if (!user) {
       navigate('/login');
+      return;
+    }
+
+    if (isInternalStaff) {
+      setFeedbackMessage('Wishlist is only available for Customer accounts.');
+      setTimeout(() => setFeedbackMessage(''), 2500);
       return;
     }
 
@@ -50,6 +62,12 @@ const ProductCard = ({ product }) => {
 
     if (!user) {
       navigate('/login');
+      return;
+    }
+
+    if (isInternalStaff) {
+      setFeedbackMessage('Shopping cart is only available for Customer accounts.');
+      setTimeout(() => setFeedbackMessage(''), 2500);
       return;
     }
 
@@ -94,23 +112,25 @@ const ProductCard = ({ product }) => {
           </span>
         </div>
 
-        {/* Wishlist Heart Floating Button */}
-        <button
-          onClick={handleWishlistToggle}
-          disabled={wishlistLoading}
-          className={`absolute top-3 right-3 p-2 rounded-full backdrop-blur-md shadow-sm transition-all ${
-            inWishlist
-              ? 'bg-rose-500 text-white hover:bg-rose-600 scale-105 shadow-rose-200'
-              : 'bg-white/90 text-slate-600 hover:text-rose-500 hover:bg-white'
-          }`}
-          title={inWishlist ? 'Remove from Wishlist' : 'Add to Wishlist'}
-        >
-          {wishlistLoading ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <Heart className={`w-4 h-4 ${inWishlist ? 'fill-white text-white' : ''}`} />
-          )}
-        </button>
+        {/* Wishlist Heart Floating Button (Visible only to Customers & Unauthenticated visitors) */}
+        {!isInternalStaff && (
+          <button
+            onClick={handleWishlistToggle}
+            disabled={wishlistLoading}
+            className={`absolute top-3 right-3 p-2 rounded-full backdrop-blur-md shadow-sm transition-all ${
+              inWishlist
+                ? 'bg-rose-500 text-white hover:bg-rose-600 scale-105 shadow-rose-200'
+                : 'bg-white/90 text-slate-600 hover:text-rose-500 hover:bg-white'
+            }`}
+            title={inWishlist ? 'Remove from Wishlist' : 'Add to Wishlist'}
+          >
+            {wishlistLoading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Heart className={`w-4 h-4 ${inWishlist ? 'fill-white text-white' : ''}`} />
+            )}
+          </button>
+        )}
 
         {/* Stock Badge */}
         <div className="absolute bottom-3 left-3">
@@ -170,33 +190,45 @@ const ProductCard = ({ product }) => {
               <Eye className="w-4 h-4" />
             </Link>
 
-            {/* Add to Cart Button */}
-            <button
-              onClick={handleAddToCart}
-              disabled={isOutOfStock || isAddingToCart}
-              className={`px-3 py-2 text-xs font-bold rounded-xl transition-all flex items-center space-x-1 shadow-2xs ${
-                cartSuccess
-                  ? 'bg-emerald-600 text-white'
-                  : isOutOfStock
-                  ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                  : 'bg-brand-gradient text-white shadow-brand-glow hover:-translate-y-0.5 active:scale-95'
-              }`}
-              title={isOutOfStock ? 'Product is Out of Stock' : 'Add 1 to Shopping Cart'}
-            >
-              {isAddingToCart ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              ) : cartSuccess ? (
-                <>
-                  <Check className="w-3.5 h-3.5" />
-                  <span>Added!</span>
-                </>
-              ) : (
-                <>
-                  <ShoppingCart className="w-3.5 h-3.5" />
-                  <span>Cart</span>
-                </>
-              )}
-            </button>
+            {/* If Admin or Sales owner -> Show Edit shortcut */}
+            {canManage ? (
+              <Link
+                to={`/products/${product._id}/edit`}
+                className="px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-bold rounded-xl transition-colors flex items-center space-x-1 border border-amber-200"
+                title="Edit Product"
+              >
+                <Edit3 className="w-3.5 h-3.5" />
+                <span>Edit</span>
+              </Link>
+            ) : !isInternalStaff ? (
+              /* If Customer -> Show Add to Cart Button */
+              <button
+                onClick={handleAddToCart}
+                disabled={isOutOfStock || isAddingToCart}
+                className={`px-3 py-2 text-xs font-bold rounded-xl transition-all flex items-center space-x-1 shadow-2xs ${
+                  cartSuccess
+                    ? 'bg-emerald-600 text-white'
+                    : isOutOfStock
+                    ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                    : 'bg-brand-gradient text-white shadow-brand-glow hover:-translate-y-0.5 active:scale-95'
+                }`}
+                title={isOutOfStock ? 'Product is Out of Stock' : 'Add 1 to Shopping Cart'}
+              >
+                {isAddingToCart ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : cartSuccess ? (
+                  <>
+                    <Check className="w-3.5 h-3.5" />
+                    <span>Added!</span>
+                  </>
+                ) : (
+                  <>
+                    <ShoppingCart className="w-3.5 h-3.5" />
+                    <span>Cart</span>
+                  </>
+                )}
+              </button>
+            ) : null}
           </div>
         </div>
       </div>

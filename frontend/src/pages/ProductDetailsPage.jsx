@@ -271,103 +271,116 @@ const ProductDetailsPage = () => {
               </p>
             </div>
 
-            {/* Quantity Selector & Add to Cart Controls */}
-            {!isOutOfStock && (
-              <div className="mb-6 p-4 bg-slate-50 border border-slate-200/70 rounded-2xl">
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+            {/* Cart & Wishlist Actions (Customer Only) */}
+            {!isAdmin && !isSales ? (
+              <>
+                {/* Quantity Picker */}
+                {!isOutOfStock && (
+                  <div className="mb-6">
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">
                       Select Quantity
                     </label>
-                    <div className="inline-flex items-center space-x-2 bg-white border border-slate-300 rounded-xl p-1 shadow-2xs">
-                      <button
-                        onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                        disabled={quantity <= 1}
-                        className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                      >
-                        <Minus className="w-3.5 h-3.5" />
-                      </button>
-                      <span className="w-8 text-center text-sm font-bold text-slate-900 font-display">
-                        {quantity}
-                      </span>
-                      <button
-                        onClick={() => setQuantity((q) => Math.min(product.stock, q + 1))}
-                        disabled={quantity >= product.stock}
-                        className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                      >
-                        <Plus className="w-3.5 h-3.5" />
-                      </button>
+                    <div className="flex items-center justify-between p-3 bg-slate-50 border border-slate-200/80 rounded-2xl">
+                      <div className="flex items-center space-x-3">
+                        <span className="text-xs font-medium text-slate-600">Units:</span>
+                        <div className="inline-flex items-center space-x-2 bg-white border border-slate-200 rounded-xl p-1 shadow-2xs">
+                          <button
+                            onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                            disabled={quantity <= 1}
+                            className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                          >
+                            <Minus className="w-3.5 h-3.5" />
+                          </button>
+                          <span className="w-8 text-center text-sm font-bold text-slate-900 font-display">
+                            {quantity}
+                          </span>
+                          <button
+                            onClick={() => setQuantity((q) => Math.min(product.stock, q + 1))}
+                            disabled={quantity >= product.stock}
+                            className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                          >
+                            <Plus className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="text-right">
+                        <span className="text-[11px] text-slate-500 font-medium block">
+                          Max units allowed:
+                        </span>
+                        <span className="text-xs font-bold text-slate-800">
+                          {product.stock} units
+                        </span>
+                      </div>
                     </div>
                   </div>
+                )}
 
-                  <div className="text-right">
-                    <span className="text-[11px] text-slate-500 font-medium block">
-                      Max units allowed:
-                    </span>
-                    <span className="text-xs font-bold text-slate-800">
-                      {product.stock} units
-                    </span>
+                {/* Error / Alert feedback */}
+                {feedbackMsg && (
+                  <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs flex items-center space-x-2">
+                    <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                    <span>{feedbackMsg}</span>
                   </div>
+                )}
+
+                {/* Actions: Add to Cart & Wishlist */}
+                <div className="flex items-center space-x-3 mb-6">
+                  <button
+                    onClick={handleAddToCart}
+                    disabled={isOutOfStock || isAddingToCart}
+                    className={`flex-1 py-3.5 px-6 rounded-xl font-bold text-sm transition-all flex items-center justify-center space-x-2 shadow-2xs ${
+                      cartSuccess
+                        ? 'bg-emerald-600 text-white'
+                        : isOutOfStock
+                        ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                        : 'bg-brand-gradient text-white shadow-brand-glow hover:-translate-y-0.5 active:scale-95'
+                    }`}
+                  >
+                    {isAddingToCart ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Adding to Cart...</span>
+                      </>
+                    ) : cartSuccess ? (
+                      <>
+                        <Check className="w-4 h-4" />
+                        <span>Added to Cart!</span>
+                      </>
+                    ) : (
+                      <>
+                        <ShoppingCart className="w-4 h-4" />
+                        <span>Add to Shopping Cart</span>
+                      </>
+                    )}
+                  </button>
+
+                  <button
+                    onClick={handleWishlistToggle}
+                    disabled={wishlistLoading}
+                    className={`p-3.5 rounded-xl border transition-all flex items-center justify-center ${
+                      inWishlist
+                        ? 'bg-rose-50 border-rose-200 text-rose-600 hover:bg-rose-100'
+                        : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'
+                    }`}
+                    title={inWishlist ? 'Remove from Wishlist' : 'Add to Wishlist'}
+                  >
+                    {wishlistLoading ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <Heart className={`w-5 h-5 ${inWishlist ? 'fill-rose-600' : ''}`} />
+                    )}
+                  </button>
                 </div>
+              </>
+            ) : (
+              <div className="mb-6 p-4 bg-slate-50 border border-slate-200 rounded-2xl text-xs text-slate-600">
+                <span className="font-bold text-slate-800 block mb-1">
+                  Merchant / Admin Account Mode
+                </span>
+                Shopping cart and wishlist actions are reserved for Customer accounts. Use the management buttons above to update or remove this catalog listing.
               </div>
             )}
-
-            {/* Error / Alert feedback */}
-            {feedbackMsg && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs flex items-center space-x-2">
-                <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                <span>{feedbackMsg}</span>
-              </div>
-            )}
-
-            {/* Actions: Add to Cart & Wishlist */}
-            <div className="flex items-center space-x-3 mb-6">
-              <button
-                onClick={handleAddToCart}
-                disabled={isOutOfStock || isAddingToCart}
-                className={`flex-1 py-3.5 px-6 rounded-xl font-bold text-sm transition-all flex items-center justify-center space-x-2 shadow-2xs ${
-                  cartSuccess
-                    ? 'bg-emerald-600 text-white'
-                    : isOutOfStock
-                    ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                    : 'bg-brand-gradient text-white shadow-brand-glow hover:-translate-y-0.5 active:scale-95'
-                }`}
-              >
-                {isAddingToCart ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Adding to Cart...</span>
-                  </>
-                ) : cartSuccess ? (
-                  <>
-                    <Check className="w-4 h-4" />
-                    <span>Added to Cart!</span>
-                  </>
-                ) : (
-                  <>
-                    <ShoppingCart className="w-4 h-4" />
-                    <span>Add to Shopping Cart</span>
-                  </>
-                )}
-              </button>
-
-              <button
-                onClick={handleWishlistToggle}
-                disabled={wishlistLoading}
-                className={`p-3.5 rounded-xl border transition-all flex items-center justify-center ${
-                  inWishlist
-                    ? 'bg-rose-50 border-rose-200 text-rose-600 hover:bg-rose-100'
-                    : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'
-                }`}
-                title={inWishlist ? 'Remove from Wishlist' : 'Add to Wishlist'}
-              >
-                {wishlistLoading ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <Heart className={`w-5 h-5 ${inWishlist ? 'fill-rose-600' : ''}`} />
-                )}
-              </button>
-            </div>
 
             {/* Seller Information */}
             {product.owner && (

@@ -174,41 +174,46 @@ const Navbar = () => {
 
         {/* User Auth, Wishlist & Cart Section */}
         <div className="flex items-center space-x-2 sm:space-x-3">
-          {/* Wishlist Link */}
-          <Link
-            to="/wishlist"
-            className={`relative p-2.5 rounded-xl transition-all ${
-              isActive('/wishlist')
-                ? 'bg-violet-50 text-violet-600'
-                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-            }`}
-            title="My Wishlist"
-          >
-            <Heart className="w-5 h-5" />
-            {wishlistCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-violet-600 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-xs animate-in zoom-in">
-                {wishlistCount}
-              </span>
-            )}
-          </Link>
+          {/* Wishlist & Cart Links - Exclusively for Customers */}
+          {(!user || (!isAdmin && !isSales)) && (
+            <>
+              {/* Wishlist Link */}
+              <Link
+                to="/wishlist"
+                className={`relative p-2.5 rounded-xl transition-all ${
+                  isActive('/wishlist')
+                    ? 'bg-violet-50 text-violet-600'
+                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                }`}
+                title="My Wishlist"
+              >
+                <Heart className="w-5 h-5" />
+                {wishlistCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-violet-600 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-xs animate-in zoom-in">
+                    {wishlistCount}
+                  </span>
+                )}
+              </Link>
 
-          {/* Cart Link */}
-          <Link
-            to="/cart"
-            className={`relative p-2.5 rounded-xl transition-all ${
-              isActive('/cart')
-                ? 'bg-indigo-50 text-indigo-600'
-                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-            }`}
-            title="My Shopping Cart"
-          >
-            <ShoppingCart className="w-5 h-5" />
-            {cartCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-indigo-600 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-xs animate-in zoom-in">
-                {cartCount}
-              </span>
-            )}
-          </Link>
+              {/* Cart Link */}
+              <Link
+                to="/cart"
+                className={`relative p-2.5 rounded-xl transition-all ${
+                  isActive('/cart')
+                    ? 'bg-indigo-50 text-indigo-600'
+                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                }`}
+                title="My Shopping Cart"
+              >
+                <ShoppingCart className="w-5 h-5" />
+                {cartCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-indigo-600 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-xs animate-in zoom-in">
+                    {cartCount}
+                  </span>
+                )}
+              </Link>
+            </>
+          )}
 
           {user ? (
             <div className="flex items-center space-x-2 sm:space-x-3 pl-1 border-l border-slate-200/80">
