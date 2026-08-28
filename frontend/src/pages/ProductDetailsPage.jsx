@@ -14,11 +14,13 @@ import {
   Minus,
   Loader2,
   Check,
+  Edit3,
+  Trash2,
 } from 'lucide-react';
 
 const ProductDetailsPage = () => {
   const { id } = useParams();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const navigate = useNavigate();
@@ -31,6 +33,7 @@ const ProductDetailsPage = () => {
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [cartSuccess, setCartSuccess] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [feedbackMsg, setFeedbackMsg] = useState('');
 
   useEffect(() => {
@@ -91,6 +94,12 @@ const ProductDetailsPage = () => {
   const isOutOfStock = product.stock <= 0;
   const inWishlist = isInWishlist(product._id);
 
+  // Check if current user is Admin OR owner of this product
+  const ownerId = typeof product.owner === 'object' ? product.owner?._id : product.owner;
+  const currentUserId = user?._id || user?.id;
+  const isOwner = ownerId && currentUserId && ownerId.toString() === currentUserId.toString();
+  const canManageProduct = isAdmin || isOwner;
+
   const formattedPrice = new Intl.NumberFormat('en-IN', {
     style: 'currency',
     currency: 'INR',
@@ -135,16 +144,64 @@ const ProductDetailsPage = () => {
     setWishlistLoading(false);
   };
 
+  const handleDeleteProduct = async () => {
+    if (!window.confirm(`Are you sure you want to permanently delete "${product.name}"?`)) {
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      const res = await productService.deleteProduct(product._id);
+      if (res.success) {
+        navigate('/products');
+      } else {
+        alert(res.message || 'Failed to delete product.');
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || 'Error deleting product.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-      {/* Back link */}
-      <Link
-        to="/products"
-        className="inline-flex items-center space-x-2 text-xs font-bold text-slate-600 hover:text-indigo-600 mb-6 group transition-colors"
-      >
-        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-        <span>Back to Products Catalog</span>
-      </Link>
+      {/* Top action row */}
+      <div className="flex items-center justify-between mb-6">
+        <Link
+          to="/products"
+          className="inline-flex items-center space-x-2 text-xs font-bold text-slate-600 hover:text-indigo-600 group transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+          <span>Back to Products Catalog</span>
+        </Link>
+
+        {/* Management actions for Admin or Product Owner */}
+        {canManageProduct && (
+          <div className="flex items-center space-x-2">
+            <Link
+              to={`/products/${product._id}/edit`}
+              className="px-3.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold rounded-xl transition-all flex items-center space-x-1.5 shadow-2xs"
+            >
+              <Edit3 className="w-3.5 h-3.5" />
+              <span>Edit Product</span>
+            </Link>
+
+            <button
+              onClick={handleDeleteProduct}
+              disabled={isDeleting}
+              className="px-3.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold rounded-xl transition-all flex items-center space-x-1.5 shadow-2xs disabled:opacity-50"
+            >
+              {isDeleting ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Trash2 className="w-3.5 h-3.5" />
+              )}
+              <span>Delete</span>
+            </button>
+          </div>
+        )}
+      </div>
 
       {/* Main Product Details Card */}
       <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden grid grid-cols-1 md:grid-cols-12 gap-0">

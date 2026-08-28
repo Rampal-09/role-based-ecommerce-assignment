@@ -43,6 +43,31 @@ export const productService = {
     });
     return response.data;
   },
+
+  /**
+   * Update an existing product (Admin or Product Owner)
+   * @param {String} id - Product ID
+   * @param {FormData} formData - Multipart form data
+   * @returns {Promise<Object>} API response data
+   */
+  updateProduct: async (id, formData) => {
+    const response = await api.put(`/products/${id}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  /**
+   * Delete a product (Admin or Product Owner)
+   * @param {String} id - Product ID
+   * @returns {Promise<Object>} API response data
+   */
+  deleteProduct: async (id) => {
+    const response = await api.delete(`/products/${id}`);
+    return response.data;
+  },
 };
 
 export default productService;
