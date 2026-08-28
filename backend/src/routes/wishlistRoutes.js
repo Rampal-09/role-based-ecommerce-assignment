@@ -4,12 +4,13 @@ const {
   addToWishlist,
   removeFromWishlist,
 } = require('../controllers/wishlistController');
-const { authenticate } = require('../middleware/authMiddleware');
+const { authenticate, authorizeRoles } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
-// All wishlist routes require authentication
+// Wishlist operations are strictly customer-only permissions
 router.use(authenticate);
+router.use(authorizeRoles('user'));
 
 router.get('/', getWishlist);
 router.post('/:productId', addToWishlist);

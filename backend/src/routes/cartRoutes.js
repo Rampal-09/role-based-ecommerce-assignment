@@ -5,12 +5,13 @@ const {
   updateCartQuantity,
   removeFromCart,
 } = require('../controllers/cartController');
-const { authenticate } = require('../middleware/authMiddleware');
+const { authenticate, authorizeRoles } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
-// All cart routes require authentication
+// Cart operations are strictly customer-only permissions
 router.use(authenticate);
+router.use(authorizeRoles('user'));
 
 router.get('/', getCart);
 router.post('/', addToCart);
