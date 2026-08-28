@@ -1,24 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import productService from '../services/productService';
+import categoryService from '../services/categoryService';
 import { useAuth } from '../context/AuthContext';
-import { Edit3, Upload, AlertCircle, ArrowLeft, CheckCircle, Image as ImageIcon, Loader2 } from 'lucide-react';
-
-const CATEGORIES = [
-  'Electronics',
-  'Fashion',
-  'Footwear',
-  'Home',
-  'Beauty',
-  'Sports',
-  'Apparel',
-  'Misc',
-];
+import { Edit3, Upload, AlertCircle, ArrowLeft, CheckCircle, Image as ImageIcon, Loader2, Plus } from 'lucide-react';
 
 const EditProductPage = () => {
   const { id } = useParams();
   const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
+
+  const [categoriesList, setCategoriesList] = useState([
+    'Electronics',
+    'Fashion',
+    'Footwear',
+    'Home',
+    'Beauty',
+    'Sports',
+    'Apparel',
+    'Misc',
+  ]);
 
   const [loading, setLoading] = useState(true);
   const [product, setProduct] = useState(null);
@@ -32,18 +33,31 @@ const EditProductPage = () => {
   const [newImageFile, setNewImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
 
+  // New Category Creation state
+  const [showNewCatInput, setShowNewCatInput] = useState(false);
+  const [newCatName, setNewCatName] = useState('');
+  const [catCreating, setCatCreating] = useState(false);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
   useEffect(() => {
-    const fetchProduct = async () => {
+    const fetchProductAndCategories = async () => {
       setLoading(true);
       setErrorMsg('');
       try {
-        const res = await productService.getProductById(id);
-        if (res.success && res.data) {
-          const p = res.data;
+        const [prodRes, catRes] = await Promise.all([
+          productService.getProductById(id),
+          categoryService.getCategories(),
+        ]);
+
+        if (catRes.success && Array.isArray(catRes.data)) {
+          setCategoriesList(catRes.data);
+        }
+
+        if (prodRes.success && prodRes.data) {
+          const p = prodRes.data;
           setProduct(p);
           setName(p.name || '');
           setDescription(p.description || '');
@@ -52,7 +66,6 @@ const EditProductPage = () => {
           setStock(p.stock !== undefined ? p.stock : '');
           setCurrentImage(p.image || '');
 
-          // Check if user is allowed to edit this product
           const ownerId = typeof p.owner === 'object' ? p.owner?._id : p.owner;
           const currentUserId = user?._id || user?.id;
           const isOwner = ownerId && currentUserId && ownerId.toString() === currentUserId.toString();
@@ -61,7 +74,7 @@ const EditProductPage = () => {
             setErrorMsg('Access Denied: You can only edit products that you own.');
           }
         } else {
-          setErrorMsg(res.message || 'Product not found');
+          setErrorMsg(prodRes.message || 'Product not found');
         }
       } catch (err) {
         setErrorMsg(err.response?.data?.message || 'Failed to load product details.');
@@ -70,8 +83,32 @@ const EditProductPage = () => {
       }
     };
 
-    fetchProduct();
+    fetchProductAndCategories();
   }, [id, user, isAdmin]);
+
+  const handleCreateCategory = async (e) => {
+    e.preventDefault();
+    if (!newCatName.trim()) return;
+
+    setCatCreating(true);
+    setErrorMsg('');
+    try {
+      const res = await categoryService.createCategory(newCatName.trim());
+      if (res.success && res.data) {
+        const createdCat = res.data;
+        if (!categoriesList.includes(createdCat)) {
+          setCategoriesList((prev) => [...prev, createdCat]);
+        }
+        setCategory(createdCat);
+        setNewCatName('');
+        setShowNewCatInput(false);
+      }
+    } catch (err) {
+      setErrorMsg(err.response?.data?.message || 'Error creating category.');
+    } finally {
+      setCatCreating(false);
+    }
+  };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -255,22 +292,53 @@ const EditProductPage = () => {
               />
             </div>
 
-            {/* Category */}
+            {/* Category with Inline Creation */}
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
-                Category *
-              </label>
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:bg-white transition-all"
-              >
-                {CATEGORIES.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                ))}
-              </select>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
+                  Category *
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setShowNewCatInput(!showNewCatInput)}
+                  className="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center space-x-1"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>{showNewCatInput ? 'Select Existing' : '+ New Category'}</span>
+                </button>
+              </div>
+
+              {showNewCatInput ? (
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="text"
+                    value={newCatName}
+                    onChange={(e) => setNewCatName(e.target.value)}
+                    placeholder="Enter new category..."
+                    className="flex-1 px-3.5 py-2.5 bg-slate-50 border border-indigo-300 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleCreateCategory}
+                    disabled={catCreating || !newCatName.trim()}
+                    className="px-3.5 py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+                  >
+                    {catCreating ? 'Adding...' : 'Add'}
+                  </button>
+                </div>
+              ) : (
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:bg-white transition-all"
+                >
+                  {categoriesList.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
 
             {/* Price */}

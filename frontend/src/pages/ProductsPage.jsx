@@ -1,25 +1,26 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import productService from '../services/productService';
+import categoryService from '../services/categoryService';
 import ProductCard from '../components/ProductCard';
 import { Search, SlidersHorizontal, RotateCcw, AlertCircle, ShoppingBag, Loader2, Plus, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
-const CATEGORIES = [
-  'All',
-  'Electronics',
-  'Fashion',
-  'Footwear',
-  'Home',
-  'Beauty',
-  'Sports',
-  'Apparel',
-  'Misc',
-];
-
 const ProductsPage = () => {
   const { isAdmin, isSales } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
+
+  const [categoriesList, setCategoriesList] = useState([
+    'All',
+    'Electronics',
+    'Fashion',
+    'Footwear',
+    'Home',
+    'Beauty',
+    'Sports',
+    'Apparel',
+    'Misc',
+  ]);
 
   // Local state initialized from URL search params
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
@@ -32,6 +33,21 @@ const ProductsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [priceValidationError, setPriceValidationError] = useState('');
+
+  // Fetch dynamic categories
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const res = await categoryService.getCategories();
+        if (res.success && Array.isArray(res.data)) {
+          setCategoriesList(['All', ...res.data.filter((c) => c !== 'All')]);
+        }
+      } catch (err) {
+        // Fallback to default
+      }
+    };
+    loadCategories();
+  }, []);
 
   // Fetch products based on active filters
   const fetchProducts = useCallback(async () => {
@@ -223,7 +239,7 @@ const ProductsPage = () => {
             Filter by Category
           </label>
           <div className="flex flex-wrap gap-2">
-            {CATEGORIES.map((category) => {
+            {categoriesList.map((category) => {
               const isSelected = selectedCategory === category;
               return (
                 <button
