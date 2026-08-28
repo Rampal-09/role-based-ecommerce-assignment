@@ -1,13 +1,37 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import productService from '../services/productService';
-import { ArrowLeft, CheckCircle2, AlertCircle, ShoppingBag, User, Tag, Layers, Loader2, Sparkles } from 'lucide-react';
+import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext';
+import { useAuth } from '../context/AuthContext';
+import {
+  ArrowLeft,
+  CheckCircle2,
+  AlertCircle,
+  ShoppingCart,
+  Heart,
+  Plus,
+  Minus,
+  Loader2,
+  Check,
+} from 'lucide-react';
 
 const ProductDetailsPage = () => {
   const { id } = useParams();
+  const { user } = useAuth();
+  const { addToCart } = useCart();
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
+  const navigate = useNavigate();
+
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const [quantity, setQuantity] = useState(1);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [cartSuccess, setCartSuccess] = useState(false);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
+  const [feedbackMsg, setFeedbackMsg] = useState('');
 
   useEffect(() => {
     const loadProduct = async () => {
@@ -65,11 +89,51 @@ const ProductDetailsPage = () => {
   }
 
   const isOutOfStock = product.stock <= 0;
+  const inWishlist = isInWishlist(product._id);
+
   const formattedPrice = new Intl.NumberFormat('en-IN', {
     style: 'currency',
     currency: 'INR',
     maximumFractionDigits: 0,
   }).format(product.price);
+
+  const handleAddToCart = async () => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    if (isOutOfStock) return;
+
+    setIsAddingToCart(true);
+    setFeedbackMsg('');
+
+    const res = await addToCart(product._id, quantity);
+    setIsAddingToCart(false);
+
+    if (res.success) {
+      setCartSuccess(true);
+      setTimeout(() => setCartSuccess(false), 1500);
+    } else {
+      setFeedbackMsg(res.message);
+      setTimeout(() => setFeedbackMsg(''), 3000);
+    }
+  };
+
+  const handleWishlistToggle = async () => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    setWishlistLoading(true);
+    if (inWishlist) {
+      await removeFromWishlist(product._id);
+    } else {
+      await addToWishlist(product._id);
+    }
+    setWishlistLoading(false);
+  };
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
@@ -91,6 +155,10 @@ const ProductDetailsPage = () => {
               src={product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&auto=format&fit=crop&q=60'}
               alt={product.name}
               className="w-full h-full object-cover"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = 'https://images.unsplash.com/photo-1558060370-d644479cb6f7?w=600&auto=format&fit=crop&q=80';
+              }}
             />
           </div>
         </div>
@@ -99,7 +167,7 @@ const ProductDetailsPage = () => {
         <div className="md:col-span-6 p-6 sm:p-10 flex flex-col justify-between">
           <div>
             {/* Category & Stock Pills */}
-            <div className="flex items-center space-x-2 mb-4">
+            <div className="flex items-center justify-between mb-4">
               <span className="px-3 py-1 bg-indigo-50 text-indigo-700 border border-indigo-100 text-xs font-bold rounded-full uppercase tracking-wider">
                 {product.category}
               </span>
@@ -111,7 +179,7 @@ const ProductDetailsPage = () => {
               ) : (
                 <span className="px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold rounded-full flex items-center space-x-1">
                   <CheckCircle2 className="w-3.5 h-3.5" />
-                  <span>In Stock ({product.stock} units available)</span>
+                  <span>In Stock ({product.stock} available)</span>
                 </span>
               )}
             </div>
@@ -122,7 +190,7 @@ const ProductDetailsPage = () => {
             </h1>
 
             {/* Price Banner */}
-            <div className="my-6 p-4 bg-slate-50 border border-slate-200/80 rounded-2xl flex items-center justify-between">
+            <div className="my-5 p-4 bg-slate-50 border border-slate-200/80 rounded-2xl flex items-center justify-between">
               <div>
                 <span className="text-xs uppercase font-bold text-slate-400 block tracking-wider">
                   Listing Price
@@ -146,14 +214,112 @@ const ProductDetailsPage = () => {
               </p>
             </div>
 
+            {/* Quantity Selector & Add to Cart Controls */}
+            {!isOutOfStock && (
+              <div className="mb-6 p-4 bg-slate-50 border border-slate-200/70 rounded-2xl">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                      Select Quantity
+                    </label>
+                    <div className="inline-flex items-center space-x-2 bg-white border border-slate-300 rounded-xl p-1 shadow-2xs">
+                      <button
+                        onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                        disabled={quantity <= 1}
+                        className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                      >
+                        <Minus className="w-3.5 h-3.5" />
+                      </button>
+                      <span className="w-8 text-center text-sm font-bold text-slate-900 font-display">
+                        {quantity}
+                      </span>
+                      <button
+                        onClick={() => setQuantity((q) => Math.min(product.stock, q + 1))}
+                        disabled={quantity >= product.stock}
+                        className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="text-right">
+                    <span className="text-[11px] text-slate-500 font-medium block">
+                      Max units allowed:
+                    </span>
+                    <span className="text-xs font-bold text-slate-800">
+                      {product.stock} units
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Error / Alert feedback */}
+            {feedbackMsg && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs flex items-center space-x-2">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                <span>{feedbackMsg}</span>
+              </div>
+            )}
+
+            {/* Actions: Add to Cart & Wishlist */}
+            <div className="flex items-center space-x-3 mb-6">
+              <button
+                onClick={handleAddToCart}
+                disabled={isOutOfStock || isAddingToCart}
+                className={`flex-1 py-3.5 px-6 rounded-xl font-bold text-sm transition-all flex items-center justify-center space-x-2 shadow-2xs ${
+                  cartSuccess
+                    ? 'bg-emerald-600 text-white'
+                    : isOutOfStock
+                    ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                    : 'bg-brand-gradient text-white shadow-brand-glow hover:-translate-y-0.5 active:scale-95'
+                }`}
+              >
+                {isAddingToCart ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Adding to Cart...</span>
+                  </>
+                ) : cartSuccess ? (
+                  <>
+                    <Check className="w-4 h-4" />
+                    <span>Added to Cart!</span>
+                  </>
+                ) : (
+                  <>
+                    <ShoppingCart className="w-4 h-4" />
+                    <span>Add to Shopping Cart</span>
+                  </>
+                )}
+              </button>
+
+              <button
+                onClick={handleWishlistToggle}
+                disabled={wishlistLoading}
+                className={`p-3.5 rounded-xl border transition-all flex items-center justify-center ${
+                  inWishlist
+                    ? 'bg-rose-50 border-rose-200 text-rose-600 hover:bg-rose-100'
+                    : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'
+                }`}
+                title={inWishlist ? 'Remove from Wishlist' : 'Add to Wishlist'}
+              >
+                {wishlistLoading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <Heart className={`w-5 h-5 ${inWishlist ? 'fill-rose-600' : ''}`} />
+                )}
+              </button>
+            </div>
+
             {/* Seller Information */}
             {product.owner && (
-              <div className="pt-6 border-t border-slate-100">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+              <div className="pt-5 border-t border-slate-100">
+                <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">
                   Verified Merchant / Owner
                 </h3>
                 <div className="flex items-center space-x-3 bg-slate-50 p-3 rounded-2xl border border-slate-200/70">
-                  <div className="w-9 h-9 rounded-xl bg-brand-gradient text-white font-bold text-xs flex items-center justify-center shadow-xs">
+                  <div className="w-8 h-8 rounded-xl bg-brand-gradient text-white font-bold text-xs flex items-center justify-center shadow-xs">
                     {product.owner.name ? product.owner.name.slice(0, 2).toUpperCase() : 'M'}
                   </div>
                   <div>
@@ -163,20 +329,6 @@ const ProductDetailsPage = () => {
                 </div>
               </div>
             )}
-          </div>
-
-          {/* Action Footer */}
-          <div className="mt-8 pt-6 border-t border-slate-100 flex items-center justify-between">
-            <Link
-              to="/products"
-              className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-colors"
-            >
-              Back to Catalog
-            </Link>
-
-            <span className="text-[11px] text-slate-400 font-medium">
-              Cart & Checkout available in Task 6
-            </span>
           </div>
         </div>
       </div>
