@@ -1,10 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Shield, Users, ShoppingBag, ShieldCheck, ArrowRight, KeyRound, Lock, CheckCircle2 } from 'lucide-react';
+import { Shield, Users, ShoppingBag, ShieldCheck, ArrowRight, KeyRound, Lock, CheckCircle2, LayoutGrid, PlusCircle } from 'lucide-react';
 
 export default function HomePage() {
-  const { user } = useAuth();
+  const { user, isAdmin, isSales } = useAuth();
 
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-slate-50 text-slate-900 flex flex-col">
@@ -16,56 +16,46 @@ export default function HomePage() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-bold mb-6">
             <span className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse"></span>
-            <span>Task 3: Authentication & RBAC Active</span>
+            <span>Task 5: Product Catalog & Filters Active</span>
           </div>
 
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black font-display tracking-tight text-slate-900 leading-tight">
             Role-Based E-Commerce <br />
-            <span className="text-brand-gradient">Access Control Matrix</span>
+            <span className="text-brand-gradient">Product Catalog & RBAC</span>
           </h1>
 
           <p className="text-base sm:text-lg text-slate-600 mt-5 max-w-2xl mx-auto leading-relaxed">
-            Secure multi-role authentication system backed by HttpOnly JWT cookies, bcrypt encryption,
-            and strict backend authorization guards for <span className="font-semibold text-slate-800">Admin</span>,{' '}
-            <span className="font-semibold text-slate-800">Sales</span>, and{' '}
-            <span className="font-semibold text-slate-800">Customer (User)</span> roles.
+            Multi-role storefront with server-side keyword search, dynamic category filtering, price range filters, and backend ownership isolation.
           </p>
 
           {/* Action CTAs */}
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3.5">
-            {user ? (
+            <Link
+              to="/products"
+              className="px-6 py-3 bg-brand-gradient text-white text-sm font-semibold rounded-2xl shadow-brand-glow hover:-translate-y-0.5 active:scale-95 transition-all flex items-center space-x-2"
+            >
+              <LayoutGrid className="w-4 h-4" />
+              <span>Browse Product Catalog</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+
+            {(isAdmin || isSales) && (
               <Link
-                to="/test-access"
-                className="px-6 py-3 bg-brand-gradient text-white text-sm font-semibold rounded-2xl shadow-brand-glow hover:-translate-y-0.5 active:scale-95 transition-all flex items-center space-x-2"
+                to="/products/new"
+                className="px-6 py-3 bg-white text-indigo-600 border border-indigo-200 text-sm font-semibold rounded-2xl shadow-2xs hover:bg-indigo-50 transition-all flex items-center space-x-2"
               >
-                <ShieldCheck className="w-4 h-4" />
-                <span>Test Role Permissions</span>
-                <ArrowRight className="w-4 h-4" />
+                <PlusCircle className="w-4 h-4 text-indigo-600" />
+                <span>Add Product</span>
               </Link>
-            ) : (
-              <>
-                <Link
-                  to="/login"
-                  className="px-6 py-3 bg-brand-gradient text-white text-sm font-semibold rounded-2xl shadow-brand-glow hover:-translate-y-0.5 active:scale-95 transition-all flex items-center space-x-2"
-                >
-                  <KeyRound className="w-4 h-4" />
-                  <span>Sign In</span>
-                </Link>
-                <Link
-                  to="/register"
-                  className="px-6 py-3 bg-white text-slate-700 border border-slate-300 text-sm font-semibold rounded-2xl shadow-2xs hover:bg-slate-50 transition-all flex items-center space-x-2"
-                >
-                  <span>Create Account</span>
-                </Link>
-                <Link
-                  to="/test-access"
-                  className="px-6 py-3 bg-slate-100 text-slate-700 text-sm font-semibold rounded-2xl hover:bg-slate-200 transition-all flex items-center space-x-2"
-                >
-                  <ShieldCheck className="w-4 h-4 text-indigo-600" />
-                  <span>RBAC Test Matrix</span>
-                </Link>
-              </>
             )}
+
+            <Link
+              to="/test-access"
+              className="px-6 py-3 bg-slate-100 text-slate-700 text-sm font-semibold rounded-2xl hover:bg-slate-200 transition-all flex items-center space-x-2"
+            >
+              <ShieldCheck className="w-4 h-4 text-indigo-600" />
+              <span>RBAC Live Matrix</span>
+            </Link>
           </div>
         </div>
       </div>
@@ -98,7 +88,7 @@ export default function HomePage() {
       {/* Role Specifications Grid */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex-1">
         <h2 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-6 text-center">
-          Three Dedicated Application Roles
+          Role-Based Access Matrix Overview
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -114,7 +104,7 @@ export default function HomePage() {
               </span>
             </div>
             <p className="text-xs text-slate-600 leading-relaxed">
-              Full administrative privileges. Access to admin workspace, user & role management, all product controls, and store-wide sales analytics.
+              Full administrative privileges. Create, edit, and delete any product in the store, manage users & roles, and oversee all operations.
             </p>
           </div>
 
@@ -130,7 +120,7 @@ export default function HomePage() {
               </span>
             </div>
             <p className="text-xs text-slate-600 leading-relaxed">
-              Seller access. Can create, update, and manage only products owned by them, and inspect incoming orders for their catalog items.
+              Merchant access. Create new products and manage (update/delete) strictly only products owned by them.
             </p>
           </div>
 
@@ -142,11 +132,11 @@ export default function HomePage() {
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-lg font-bold font-display text-slate-900">User Role</h3>
               <span className="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-full">
-                Default
+                Customer
               </span>
             </div>
             <p className="text-xs text-slate-600 leading-relaxed">
-              Standard consumer account. Automatically assigned upon registration. Can browse the catalog, manage cart, wishlist, and place orders.
+              Standard consumer account. Can browse products, search, filter categories and price ranges, and view product details.
             </p>
           </div>
         </div>
@@ -154,7 +144,7 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="border-t border-slate-200/80 bg-white py-6 text-center text-xs text-slate-500">
-        Role-Based E-Commerce Platform &bull; Task 3 Authentication & RBAC Completed
+        Role-Based E-Commerce Platform &bull; Task 5 Product Catalog & Filtering
       </footer>
     </div>
   );

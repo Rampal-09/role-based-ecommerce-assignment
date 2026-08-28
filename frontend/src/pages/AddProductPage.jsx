@@ -1,0 +1,300 @@
+import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import productService from '../services/productService';
+import { useAuth } from '../context/AuthContext';
+import { PlusCircle, Upload, AlertCircle, ArrowLeft, CheckCircle, Image as ImageIcon } from 'lucide-react';
+
+const CATEGORIES = [
+  'Electronics',
+  'Fashion',
+  'Footwear',
+  'Home',
+  'Beauty',
+  'Sports',
+  'Apparel',
+  'Misc',
+];
+
+const AddProductPage = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [price, setPrice] = useState('');
+  const [category, setCategory] = useState('Electronics');
+  const [stock, setStock] = useState('');
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        setErrorMsg('Image size exceeds maximum limit of 5MB.');
+        return;
+      }
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
+      setErrorMsg('');
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setErrorMsg('');
+    setSuccessMsg('');
+
+    if (!name.trim() || !price || !category || !stock) {
+      setErrorMsg('Please fill in all required fields.');
+      return;
+    }
+
+    if (!imageFile) {
+      setErrorMsg('Please select a product image to upload.');
+      return;
+    }
+
+    const parsedPrice = Number(price);
+    const parsedStock = parseInt(stock, 10);
+
+    if (isNaN(parsedPrice) || parsedPrice < 0) {
+      setErrorMsg('Please provide a valid price (>= 0).');
+      return;
+    }
+
+    if (isNaN(parsedStock) || parsedStock < 0) {
+      setErrorMsg('Please provide a valid stock count (>= 0).');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('name', name.trim());
+      formData.append('description', description.trim());
+      formData.append('price', parsedPrice);
+      formData.append('category', category);
+      formData.append('stock', parsedStock);
+      formData.append('image', imageFile);
+
+      const response = await productService.createProduct(formData);
+
+      if (response.success) {
+        setSuccessMsg('Product created and image uploaded successfully!');
+        setTimeout(() => {
+          navigate('/products');
+        }, 1200);
+      } else {
+        setErrorMsg(response.message || 'Failed to create product.');
+      }
+    } catch (err) {
+      setErrorMsg(err.response?.data?.message || 'Server error creating product.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+      {/* Back button */}
+      <Link
+        to="/products"
+        className="inline-flex items-center space-x-2 text-xs font-bold text-slate-600 hover:text-indigo-600 mb-6 transition-colors"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        <span>Back to Products</span>
+      </Link>
+
+      <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-10">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="inline-flex items-center space-x-2 px-3 py-1 bg-indigo-50 border border-indigo-100 rounded-full text-xs font-bold text-indigo-700 mb-3">
+            <PlusCircle className="w-3.5 h-3.5 text-indigo-600" />
+            <span>Product Creation Portal</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-black font-display text-slate-900 tracking-tight">
+            Add New Product
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-600 mt-1">
+            Logged in as <span className="font-semibold text-slate-800">{user?.name}</span> ({user?.role?.toUpperCase()}). Product ownership will be assigned automatically.
+          </p>
+        </div>
+
+        {/* Feedback Alerts */}
+        {successMsg && (
+          <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl flex items-center space-x-2 text-xs sm:text-sm">
+            <CheckCircle className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+            <span>{successMsg}</span>
+          </div>
+        )}
+
+        {errorMsg && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-800 rounded-2xl flex items-center space-x-2 text-xs sm:text-sm">
+            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
+            <span>{errorMsg}</span>
+          </div>
+        )}
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Image Upload Area */}
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-2">
+              Product Image (Cloudinary Upload) *
+            </label>
+            <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 border-dashed rounded-2xl hover:border-indigo-400 transition-colors bg-slate-50">
+              <div className="space-y-2 text-center">
+                {imagePreview ? (
+                  <div className="relative mx-auto w-32 h-32 rounded-2xl overflow-hidden border border-slate-200 shadow-sm mb-3">
+                    <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                  </div>
+                ) : (
+                  <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto mb-2">
+                    <ImageIcon className="w-6 h-6" />
+                  </div>
+                )}
+                <div className="flex text-xs text-slate-600 justify-center">
+                  <label
+                    htmlFor="file-upload"
+                    className="relative cursor-pointer bg-white rounded-md font-bold text-indigo-600 hover:text-indigo-500 focus-within:outline-none"
+                  >
+                    <span>{imagePreview ? 'Change image file' : 'Select an image file'}</span>
+                    <input
+                      id="file-upload"
+                      name="image"
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/gif"
+                      className="sr-only"
+                      onChange={handleImageChange}
+                    />
+                  </label>
+                </div>
+                <p className="text-[11px] text-slate-400">
+                  PNG, JPG, WEBP or GIF up to 5MB
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            {/* Product Name */}
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
+                Product Name *
+              </label>
+              <input
+                type="text"
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="e.g. Wireless Noise-Cancelling Headphones"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:bg-white transition-all"
+              />
+            </div>
+
+            {/* Category */}
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
+                Category *
+              </label>
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:bg-white transition-all"
+              >
+                {CATEGORIES.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Price */}
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
+                Price (₹) *
+              </label>
+              <input
+                type="number"
+                min="0"
+                step="any"
+                required
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                placeholder="e.g. 2499"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:bg-white transition-all"
+              />
+            </div>
+
+            {/* Stock */}
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
+                Stock Quantity *
+              </label>
+              <input
+                type="number"
+                min="0"
+                required
+                value={stock}
+                onChange={(e) => setStock(e.target.value)}
+                placeholder="e.g. 50"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:bg-white transition-all"
+              />
+            </div>
+          </div>
+
+          {/* Description */}
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
+              Product Description
+            </label>
+            <textarea
+              rows={4}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Provide a detailed description of features and specifications..."
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:bg-white transition-all"
+            />
+          </div>
+
+          {/* Submit button */}
+          <div className="pt-4 flex items-center justify-end space-x-3">
+            <Link
+              to="/products"
+              className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-colors"
+            >
+              Cancel
+            </Link>
+
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="px-6 py-3 bg-brand-gradient text-white text-xs sm:text-sm font-semibold rounded-xl shadow-brand-glow hover:-translate-y-0.5 active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center space-x-2"
+            >
+              {isSubmitting ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Uploading & Saving...</span>
+                </>
+              ) : (
+                <>
+                  <Upload className="w-4 h-4" />
+                  <span>Create Product</span>
+                </>
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export default AddProductPage;
