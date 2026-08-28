@@ -1,10 +1,14 @@
 import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { ShieldCheck, LogOut, LogIn, UserPlus, ShoppingBag, PlusCircle, LayoutGrid } from 'lucide-react';
+import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext';
+import { ShieldCheck, LogOut, LogIn, UserPlus, ShoppingCart, Heart, PlusCircle, LayoutGrid } from 'lucide-react';
 
 const Navbar = () => {
   const { user, logout, isAdmin, isSales } = useAuth();
+  const { cartCount } = useCart();
+  const { wishlistCount } = useWishlist();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -69,7 +73,7 @@ const Navbar = () => {
             Home
           </Link>
 
-          {/* Products link visible to all visitors */}
+          {/* Products link visible to all */}
           <Link
             to="/products"
             className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center space-x-1.5 ${
@@ -111,10 +115,46 @@ const Navbar = () => {
           </Link>
         </nav>
 
-        {/* User Auth Section */}
-        <div className="flex items-center space-x-3">
+        {/* User Auth, Wishlist & Cart Section */}
+        <div className="flex items-center space-x-2 sm:space-x-3">
+          {/* Wishlist Link */}
+          <Link
+            to="/wishlist"
+            className={`relative p-2.5 rounded-xl transition-all ${
+              isActive('/wishlist')
+                ? 'bg-violet-50 text-violet-600'
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+            }`}
+            title="My Wishlist"
+          >
+            <Heart className="w-5 h-5" />
+            {wishlistCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-violet-600 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-xs animate-in zoom-in">
+                {wishlistCount}
+              </span>
+            )}
+          </Link>
+
+          {/* Cart Link */}
+          <Link
+            to="/cart"
+            className={`relative p-2.5 rounded-xl transition-all ${
+              isActive('/cart')
+                ? 'bg-indigo-50 text-indigo-600'
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+            }`}
+            title="My Shopping Cart"
+          >
+            <ShoppingCart className="w-5 h-5" />
+            {cartCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-indigo-600 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-xs animate-in zoom-in">
+                {cartCount}
+              </span>
+            )}
+          </Link>
+
           {user ? (
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2 sm:space-x-3 pl-1 border-l border-slate-200/80">
               <div className="flex items-center space-x-2 bg-slate-50 border border-slate-200/90 rounded-2xl px-3 py-1.5 shadow-2xs">
                 <div className="w-8 h-8 rounded-full bg-brand-gradient text-white font-black text-xs flex items-center justify-center border border-indigo-200 shadow-xs uppercase">
                   {user.name ? user.name.slice(0, 2) : 'U'}
@@ -139,7 +179,7 @@ const Navbar = () => {
               </button>
             </div>
           ) : (
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 pl-1 border-l border-slate-200/80">
               <Link
                 to="/login"
                 className="px-3.5 py-2 text-xs sm:text-sm font-semibold text-slate-700 hover:bg-slate-100 rounded-xl transition-all flex items-center space-x-1"
