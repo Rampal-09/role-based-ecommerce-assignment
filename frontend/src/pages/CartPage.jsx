@@ -1,7 +1,8 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import paymentService from '../services/paymentService';
 import {
   Trash2,
   Plus,
@@ -11,11 +12,31 @@ import {
   ShieldCheck,
   CreditCard,
   Sparkles,
+  Loader2,
+  AlertCircle,
 } from 'lucide-react';
+
+const loadRazorpayScript = () => {
+  return new Promise((resolve) => {
+    if (window.Razorpay) {
+      resolve(true);
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
 
 const CartPage = () => {
   const { user } = useAuth();
-  const { cart, cartCount, cartSubtotal, updateQuantity, removeFromCart, loading } = useCart();
+  const { cart, cartCount, cartSubtotal, updateQuantity, removeFromCart, fetchCart } = useCart();
+  const navigate = useNavigate();
+
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [checkoutError, setCheckoutError] = useState('');
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-IN', {
@@ -23,6 +44,104 @@ const CartPage = () => {
       currency: 'INR',
       maximumFractionDigits: 0,
     }).format(amount);
+  };
+
+  const handleCheckout = async () => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    setIsProcessing(true);
+    setCheckoutError('');
+
+    try {
+      // 1. Create Razorpay order on backend
+      const orderData = await paymentService.createOrder();
+      if (!orderData.success || !orderData.orderId) {
+        setCheckoutError(orderData.message || 'Failed to initialize checkout order.');
+        setIsProcessing(false);
+        return;
+      }
+
+      // 2. Ensure Razorpay checkout script is loaded
+      const isScriptLoaded = await loadRazorpayScript();
+
+      // Check if we are running in real Razorpay checkout or test environment
+      if (isScriptLoaded && window.Razorpay && !orderData.orderId.startsWith('order_mock_')) {
+        const options = {
+          key: orderData.keyId,
+          amount: orderData.amountInPaise,
+          currency: orderData.currency || 'INR',
+          name: 'CommerceHub Store',
+          description: `Order Checkout (${cartCount} items)`,
+          order_id: orderData.orderId,
+          prefill: {
+            name: user.name || '',
+            email: user.email || '',
+          },
+          theme: {
+            color: '#4f46e5',
+          },
+          handler: async (response) => {
+            try {
+              // 3. Verify signature on backend
+              const verifyRes = await paymentService.verifyPayment({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+              });
+
+              if (verifyRes.success && verifyRes.data) {
+                await fetchCart();
+                navigate(`/order-success/${verifyRes.data.orderId}`, {
+                  state: { order: verifyRes.data },
+                });
+              } else {
+                setCheckoutError(verifyRes.message || 'Payment verification failed.');
+              }
+            } catch (err) {
+              setCheckoutError(err.response?.data?.message || 'Error verifying payment signature.');
+            } finally {
+              setIsProcessing(false);
+            }
+          },
+          modal: {
+            ondismiss: () => {
+              setIsProcessing(false);
+            },
+          },
+        };
+
+        const rzp = new window.Razorpay(options);
+        rzp.on('payment.failed', (response) => {
+          setCheckoutError('Payment failed: ' + (response.error?.description || 'Transaction cancelled'));
+          setIsProcessing(false);
+        });
+        rzp.open();
+      } else {
+        // Fallback test mode simulation (for mock test environments)
+        const mockPaymentId = `pay_mock_${Date.now()}`;
+        const verifyRes = await paymentService.verifyPayment({
+          razorpay_order_id: orderData.orderId,
+          razorpay_payment_id: mockPaymentId,
+          razorpay_signature: 'mock_signature',
+        });
+
+        if (verifyRes.success && verifyRes.data) {
+          await fetchCart();
+          navigate(`/order-success/${verifyRes.data.orderId}`, {
+            state: { order: verifyRes.data },
+          });
+        } else {
+          setCheckoutError(verifyRes.message || 'Payment verification failed.');
+        }
+        setIsProcessing(false);
+      }
+    } catch (err) {
+      setCheckoutError(err.response?.data?.message || 'Server error processing checkout.');
+      setIsProcessing(false);
+    }
   };
 
   if (!user) {
@@ -84,6 +203,14 @@ const CartPage = () => {
         </h1>
       </div>
 
+      {/* Checkout error banner if any */}
+      {checkoutError && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-800 rounded-2xl flex items-center space-x-2 text-xs sm:text-sm">
+          <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
+          <span>{checkoutError}</span>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Left Column: Cart Items List */}
         <div className="lg:col-span-8 space-y-4">
@@ -140,7 +267,7 @@ const CartPage = () => {
                     <div className="inline-flex items-center space-x-1.5 bg-slate-50 border border-slate-200 rounded-2xl p-1 shadow-2xs">
                       <button
                         onClick={() => updateQuantity(product._id, item.quantity - 1)}
-                        disabled={item.quantity <= 1}
+                        disabled={item.quantity <= 1 || isProcessing}
                         className="p-1.5 rounded-xl hover:bg-white text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                         title="Decrease quantity"
                       >
@@ -153,7 +280,7 @@ const CartPage = () => {
 
                       <button
                         onClick={() => updateQuantity(product._id, item.quantity + 1)}
-                        disabled={isAtMaxStock}
+                        disabled={isAtMaxStock || isProcessing}
                         className="p-1.5 rounded-xl hover:bg-white text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                         title={isAtMaxStock ? 'Maximum stock reached' : 'Increase quantity'}
                       >
@@ -175,7 +302,8 @@ const CartPage = () => {
                   {/* Remove Button */}
                   <button
                     onClick={() => removeFromCart(product._id)}
-                    className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+                    disabled={isProcessing}
+                    className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors disabled:opacity-40"
                     title="Remove item"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -218,18 +346,29 @@ const CartPage = () => {
             </span>
           </div>
 
-          {/* Checkout button placeholder for Task 7 */}
+          {/* Checkout button connected to Razorpay */}
           <button
             type="button"
-            className="w-full py-3.5 px-4 bg-brand-gradient text-white text-xs sm:text-sm font-semibold rounded-2xl shadow-brand-glow hover:-translate-y-0.5 active:scale-95 transition-all flex items-center justify-center space-x-2"
+            onClick={handleCheckout}
+            disabled={isProcessing || cart.items.length === 0}
+            className="w-full py-3.5 px-4 bg-brand-gradient text-white text-xs sm:text-sm font-semibold rounded-2xl shadow-brand-glow hover:-translate-y-0.5 active:scale-95 transition-all flex items-center justify-center space-x-2 disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            <CreditCard className="w-4 h-4" />
-            <span>Proceed to Checkout</span>
+            {isProcessing ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Processing Razorpay Checkout...</span>
+              </>
+            ) : (
+              <>
+                <CreditCard className="w-4 h-4" />
+                <span>Proceed to Razorpay Checkout</span>
+              </>
+            )}
           </button>
 
           <p className="text-[11px] text-center text-slate-400 mt-4 flex items-center justify-center space-x-1">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-            <span>Razorpay Payment Gateway integration in Task 7</span>
+            <span>Secure 256-bit encrypted checkout with Razorpay</span>
           </p>
         </div>
       </div>

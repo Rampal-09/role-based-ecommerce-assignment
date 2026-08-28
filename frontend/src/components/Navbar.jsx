@@ -3,7 +3,19 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
-import { ShieldCheck, LogOut, LogIn, UserPlus, ShoppingCart, Heart, PlusCircle, LayoutGrid } from 'lucide-react';
+import {
+  ShieldCheck,
+  LogOut,
+  LogIn,
+  UserPlus,
+  ShoppingCart,
+  Heart,
+  PlusCircle,
+  LayoutGrid,
+  Package,
+  TrendingUp,
+  Shield,
+} from 'lucide-react';
 
 const Navbar = () => {
   const { user, logout, isAdmin, isSales } = useAuth();
@@ -61,10 +73,10 @@ const Navbar = () => {
         </Link>
 
         {/* Navigation Links */}
-        <nav className="flex items-center space-x-1 sm:space-x-2">
+        <nav className="flex items-center space-x-1 sm:space-x-1.5">
           <Link
             to="/"
-            className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
+            className={`px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
               isActive('/')
                 ? 'bg-brand-gradient text-white shadow-brand-glow'
                 : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
@@ -73,10 +85,10 @@ const Navbar = () => {
             Home
           </Link>
 
-          {/* Products link visible to all */}
+          {/* Products Catalog */}
           <Link
             to="/products"
-            className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center space-x-1.5 ${
+            className={`px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center space-x-1.5 ${
               isActive('/products')
                 ? 'bg-brand-gradient text-white shadow-brand-glow'
                 : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
@@ -86,32 +98,77 @@ const Navbar = () => {
             <span>Products</span>
           </Link>
 
-          {/* Add Product link visible ONLY to Admin and Sales */}
+          {/* Role-Specific Link: Customer -> My Orders */}
+          {user && !isAdmin && !isSales && (
+            <Link
+              to="/orders"
+              className={`px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center space-x-1.5 ${
+                isActive('/orders')
+                  ? 'bg-brand-gradient text-white shadow-brand-glow'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+              }`}
+            >
+              <Package className="w-4 h-4" />
+              <span>My Orders</span>
+            </Link>
+          )}
+
+          {/* Role-Specific Link: Sales Person -> Sales Dashboard */}
+          {isSales && (
+            <Link
+              to="/sales/dashboard"
+              className={`px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center space-x-1.5 ${
+                isActive('/sales/dashboard')
+                  ? 'bg-amber-500 text-white shadow-sm'
+                  : 'text-amber-700 hover:bg-amber-50 font-bold'
+              }`}
+            >
+              <TrendingUp className="w-4 h-4" />
+              <span>Sales Dashboard</span>
+            </Link>
+          )}
+
+          {/* Role-Specific Link: Admin -> Admin Dashboard */}
+          {isAdmin && (
+            <Link
+              to="/admin/dashboard"
+              className={`px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center space-x-1.5 ${
+                isActive('/admin/dashboard')
+                  ? 'bg-rose-600 text-white shadow-sm'
+                  : 'text-rose-700 hover:bg-rose-50 font-bold'
+              }`}
+            >
+              <Shield className="w-4 h-4" />
+              <span>Admin Dashboard</span>
+            </Link>
+          )}
+
+          {/* Add Product link visible to Admin and Sales */}
           {(isAdmin || isSales) && (
             <Link
               to="/products/new"
-              className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center space-x-1.5 ${
+              className={`px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center space-x-1.5 ${
                 isActive('/products/new')
                   ? 'bg-brand-gradient text-white shadow-brand-glow'
                   : 'text-indigo-600 hover:bg-indigo-50 font-bold'
               }`}
             >
               <PlusCircle className="w-4 h-4" />
-              <span>Add Product</span>
+              <span className="hidden md:inline">Add Product</span>
             </Link>
           )}
 
+          {/* RBAC Live Test */}
           <Link
             to="/test-access"
-            className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center space-x-1.5 ${
+            className={`px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center space-x-1.5 ${
               isActive('/test-access')
                 ? 'bg-brand-gradient text-white shadow-brand-glow'
                 : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
             }`}
           >
             <ShieldCheck className="w-4 h-4" />
-            <span className="hidden md:inline">RBAC Live Test</span>
-            <span className="md:hidden">RBAC</span>
+            <span className="hidden lg:inline">RBAC Test</span>
           </Link>
         </nav>
 
