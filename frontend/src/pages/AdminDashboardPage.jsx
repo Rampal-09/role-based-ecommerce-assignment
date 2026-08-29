@@ -23,6 +23,8 @@ const AdminDashboardPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('orders'); // 'orders' | 'users'
+  const [updatingUserId, setUpdatingUserId] = useState(null);
+  const [roleMessage, setRoleMessage] = useState({ text: '', type: '' });
 
   const fetchAdminData = async () => {
     setLoading(true);
@@ -46,6 +48,36 @@ const AdminDashboardPage = () => {
       setError(err.response?.data?.message || 'Server error loading admin dashboard.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRoleChange = async (userId, newRole) => {
+    setUpdatingUserId(userId);
+    setRoleMessage({ text: '', type: '' });
+    try {
+      const res = await orderService.updateUserRole(userId, newRole);
+      if (res.success && res.data) {
+        setUsersList((prev) =>
+          prev.map((u) => (u._id === userId ? { ...u, role: newRole } : u))
+        );
+        setRoleMessage({
+          text: `Role successfully updated to "${newRole}".`,
+          type: 'success',
+        });
+        setTimeout(() => setRoleMessage({ text: '', type: '' }), 3500);
+      } else {
+        setRoleMessage({
+          text: res.message || 'Failed to update role',
+          type: 'error',
+        });
+      }
+    } catch (err) {
+      setRoleMessage({
+        text: err.response?.data?.message || 'Error updating user role',
+        type: 'error',
+      });
+    } finally {
+      setUpdatingUserId(null);
     }
   };
 
@@ -332,36 +364,97 @@ const AdminDashboardPage = () => {
 
       {/* Tab 2: Users Directory */}
       {activeTab === 'users' && (
-        <div className="bg-white rounded-3xl border border-slate-200/90 shadow-2xs overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs sm:text-sm">
-              <thead className="bg-slate-50 text-slate-400 font-bold uppercase text-[10px] tracking-wider border-b border-slate-200/80">
-                <tr>
-                  <th className="p-4 sm:px-6">User Name</th>
-                  <th className="p-4">Email Address</th>
-                  <th className="p-4">Role Permission</th>
-                  <th className="p-4 sm:px-6">Member Since</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {usersList.map((u) => (
-                  <tr key={u._id} className="hover:bg-slate-50/70 transition-colors">
-                    <td className="p-4 sm:px-6 font-bold text-slate-900 flex items-center space-x-3">
-                      <div className="w-8 h-8 rounded-full bg-brand-gradient text-white text-xs font-black flex items-center justify-center uppercase">
-                        {u.name ? u.name.slice(0, 2) : 'U'}
-                      </div>
-                      <span>{u.name}</span>
-                    </td>
+        <div className="space-y-4">
+          {/* Role Update Toast / Alert */}
+          {roleMessage.text && (
+            <div
+              className={`p-4 rounded-2xl flex items-center space-x-2.5 text-xs sm:text-sm animate-in fade-in ${
+                roleMessage.type === 'success'
+                  ? 'bg-emerald-50 border border-emerald-200 text-emerald-800'
+                  : 'bg-red-50 border border-red-200 text-red-800'
+              }`}
+            >
+              {roleMessage.type === 'success' ? (
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+              ) : (
+                <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0" />
+              )}
+              <span className="font-semibold">{roleMessage.text}</span>
+            </div>
+          )}
 
-                    <td className="p-4 text-slate-600">{u.email}</td>
-
-                    <td className="p-4">{getRoleBadge(u.role)}</td>
-
-                    <td className="p-4 sm:px-6 text-slate-500">{formatDate(u.createdAt)}</td>
+          <div className="bg-white rounded-3xl border border-slate-200/90 shadow-2xs overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs sm:text-sm">
+                <thead className="bg-slate-50 text-slate-400 font-bold uppercase text-[10px] tracking-wider border-b border-slate-200/80">
+                  <tr>
+                    <th className="p-4 sm:px-6">User Name</th>
+                    <th className="p-4">Email Address</th>
+                    <th className="p-4">Current Role</th>
+                    <th className="p-4">Assign / Promote Role</th>
+                    <th className="p-4 sm:px-6">Member Since</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {usersList.map((u) => {
+                    const isUpdating = updatingUserId === u._id;
+
+                    return (
+                      <tr key={u._id} className="hover:bg-slate-50/70 transition-colors">
+                        <td className="p-4 sm:px-6 font-bold text-slate-900 flex items-center space-x-3">
+                          <div className="w-8 h-8 rounded-full bg-brand-gradient text-white text-xs font-black flex items-center justify-center uppercase">
+                            {u.name ? u.name.slice(0, 2) : 'U'}
+                          </div>
+                          <span>{u.name}</span>
+                        </td>
+
+                        <td className="p-4 text-slate-600">{u.email}</td>
+
+                        <td className="p-4">{getRoleBadge(u.role)}</td>
+
+                        {/* Interactive Role Selector & Quick Action */}
+                        <td className="p-4">
+                          <div className="flex items-center space-x-2">
+                            <select
+                              value={u.role}
+                              disabled={isUpdating}
+                              onChange={(e) => handleRoleChange(u._id, e.target.value)}
+                              className="px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all disabled:opacity-50 cursor-pointer"
+                            >
+                              <option value="user">Customer (user)</option>
+                              <option value="sales">Seller (sales)</option>
+                              <option value="admin">Admin (admin)</option>
+                            </select>
+
+                            {/* Quick 1-Click Promote Button if currently standard user */}
+                            {u.role === 'user' && (
+                              <button
+                                onClick={() => handleRoleChange(u._id, 'sales')}
+                                disabled={isUpdating}
+                                className="px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-[11px] font-bold rounded-xl transition-all shadow-2xs disabled:opacity-50 flex items-center space-x-1"
+                                title="Promote user to Seller role"
+                              >
+                                {isUpdating ? (
+                                  <Loader2 className="w-3 h-3 animate-spin" />
+                                ) : (
+                                  <span>Promote to Seller</span>
+                                )}
+                              </button>
+                            )}
+
+                            {isUpdating && (
+                              <Loader2 className="w-3.5 h-3.5 text-indigo-600 animate-spin" />
+                            )}
+                          </div>
+                        </td>
+
+                        <td className="p-4 sm:px-6 text-slate-500">{formatDate(u.createdAt)}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}

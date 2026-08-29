@@ -4,6 +4,7 @@ const {
   getSellerDashboardData,
   getAdminDashboardData,
   getAdminUsersList,
+  updateUserRole,
 } = require('../controllers/orderController');
 const { authenticate, authorizeRoles } = require('../middleware/authMiddleware');
 
@@ -23,5 +24,8 @@ router.get('/admin-dashboard', authorizeRoles('admin'), getAdminDashboardData);
 
 // 4. Admin user directory
 router.get('/admin/users', authorizeRoles('admin'), getAdminUsersList);
+
+// 5. Admin update user role
+router.patch('/admin/users/:id/role', authorizeRoles('admin'), updateUserRole);
 
 module.exports = router;

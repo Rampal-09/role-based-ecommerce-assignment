@@ -173,9 +173,65 @@ const getAdminUsersList = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Update a user's role (Admin only)
+ * @route   PATCH /api/orders/admin/users/:id/role
+ * @access  Private (Admin only)
+ */
+const updateUserRole = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { role } = req.body;
+
+    if (!['user', 'sales', 'admin'].includes(role)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid role specified. Must be user, sales, or admin.',
+      });
+    }
+
+    // Prevent admin from accidentally demoting themselves if they are the only admin
+    if (req.user.id.toString() === id.toString() && role !== 'admin') {
+      const otherAdmins = await User.countDocuments({ role: 'admin', _id: { $ne: id } });
+      if (otherAdmins === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Cannot demote the only remaining administrator account.',
+        });
+      }
+    }
+
+    const user = await User.findByIdAndUpdate(
+      id,
+      { role },
+      { new: true, runValidators: true }
+    ).select('-password');
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `User role updated to ${role} successfully`,
+      data: user,
+    });
+  } catch (error) {
+    console.error('Update User Role Error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error updating user role',
+    });
+  }
+};
+
 module.exports = {
   getMyOrders,
   getSellerDashboardData,
   getAdminDashboardData,
   getAdminUsersList,
+  updateUserRole,
 };

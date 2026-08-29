@@ -36,6 +36,17 @@ export const orderService = {
     const response = await api.get('/orders/admin/users');
     return response.data;
   },
+
+  /**
+   * Update user role (Admin only)
+   * @param {string} userId - User ID to update
+   * @param {string} role - New role ('user', 'sales', 'admin')
+   * @returns {Promise<Object>} Updated user response
+   */
+  updateUserRole: async (userId, role) => {
+    const response = await api.patch(`/orders/admin/users/${userId}/role`, { role });
+    return response.data;
+  },
 };
 
 export default orderService;

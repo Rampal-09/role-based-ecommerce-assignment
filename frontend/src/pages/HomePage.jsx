@@ -1,19 +1,17 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import Footer from '../components/Footer';
 import {
   ShoppingBag,
   ArrowRight,
   ShieldCheck,
   Zap,
-  Truck,
   Layers,
   Sparkles,
   Smartphone,
   Shirt,
   Watch,
   Home as HomeIcon,
-  PackageCheck,
   CreditCard,
 } from 'lucide-react';
 
@@ -25,8 +23,6 @@ const CATEGORIES = [
 ];
 
 export default function HomePage() {
-  const { user, isAdmin, isSales } = useAuth();
-
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-slate-50 text-slate-900 flex flex-col">
       {/* Hero Section */}
@@ -49,44 +45,16 @@ export default function HomePage() {
             Explore curated collections of premium electronics, fashion, footwear, and home essentials with instant, secure 256-bit encrypted checkout.
           </p>
 
-          {/* Action CTAs */}
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3.5">
+          {/* Action CTA */}
+          <div className="mt-8 flex items-center justify-center">
             <Link
               to="/products"
-              className="px-7 py-3.5 bg-brand-gradient text-white text-xs sm:text-sm font-semibold rounded-2xl shadow-brand-glow hover:-translate-y-0.5 active:scale-95 transition-all flex items-center space-x-2"
+              className="px-8 py-3.5 bg-brand-gradient text-white text-xs sm:text-sm font-semibold rounded-2xl shadow-brand-glow hover:-translate-y-0.5 active:scale-95 transition-all flex items-center space-x-2"
             >
               <ShoppingBag className="w-4 h-4" />
               <span>Explore Products Catalog</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
-
-            {isAdmin && (
-              <Link
-                to="/admin/dashboard"
-                className="px-6 py-3.5 bg-white text-rose-700 border border-rose-200 text-xs sm:text-sm font-bold rounded-2xl shadow-2xs hover:bg-rose-50 transition-all"
-              >
-                <span>Admin Dashboard</span>
-              </Link>
-            )}
-
-            {isSales && (
-              <Link
-                to="/sales/dashboard"
-                className="px-6 py-3.5 bg-white text-amber-800 border border-amber-200 text-xs sm:text-sm font-bold rounded-2xl shadow-2xs hover:bg-amber-50 transition-all"
-              >
-                <span>Sales Merchant Portal</span>
-              </Link>
-            )}
-
-            {user && !isAdmin && !isSales && (
-              <Link
-                to="/orders"
-                className="px-6 py-3.5 bg-white text-slate-700 border border-slate-200 text-xs sm:text-sm font-bold rounded-2xl shadow-2xs hover:bg-slate-100 transition-all flex items-center space-x-1.5"
-              >
-                <PackageCheck className="w-4 h-4 text-indigo-600" />
-                <span>My Past Orders</span>
-              </Link>
-            )}
           </div>
         </div>
       </div>
@@ -181,26 +149,8 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Clean Modern Footer */}
-      <footer className="bg-slate-900 text-slate-400 py-8 text-center text-xs">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center space-x-2">
-            <div className="w-6 h-6 rounded-lg bg-brand-gradient text-white font-black text-xs flex items-center justify-center font-display">
-              CH
-            </div>
-            <span className="font-bold text-slate-200">CommerceHub</span>
-          </div>
-
-          <div className="flex items-center space-x-4 text-slate-400 text-xs">
-            <Link to="/products" className="hover:text-white transition-colors">Catalog</Link>
-            <Link to="/login" className="hover:text-white transition-colors">Sign In</Link>
-          </div>
-
-          <p className="text-slate-500 text-[11px]">
-            &copy; {new Date().getFullYear()} CommerceHub. All rights reserved.
-          </p>
-        </div>
-      </footer>
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }
