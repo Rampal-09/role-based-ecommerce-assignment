@@ -1,6 +1,11 @@
 const { Readable } = require('stream');
 const cloudinary = require('../config/cloudinary');
 
+const getCloudName = () =>
+  process.env.CLOUDINARY_CLOUD_NAME ||
+  process.env.CLOUD_NAME ||
+  process.env.cloud_name;
+
 /**
  * Upload an image buffer to Cloudinary (with base64 fallback when credentials are not configured)
  * @param {Buffer} fileBuffer - The image file buffer from Multer
@@ -10,10 +15,12 @@ const cloudinary = require('../config/cloudinary');
  */
 const uploadToCloudinary = (fileBuffer, folder = 'products', mimeType = 'image/jpeg') => {
   return new Promise((resolve, reject) => {
+    const cloudName = getCloudName();
+
     // If Cloudinary credentials are mock or missing, create a base64 Data URI so the uploaded image displays perfectly
     if (
-      !process.env.CLOUDINARY_CLOUD_NAME ||
-      process.env.CLOUDINARY_CLOUD_NAME === 'mock_cloud' ||
+      !cloudName ||
+      cloudName === 'mock_cloud' ||
       process.env.NODE_ENV === 'test'
     ) {
       const mockPublicId = `${folder}/asset_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
@@ -58,9 +65,10 @@ const uploadToCloudinary = (fileBuffer, folder = 'products', mimeType = 'image/j
  */
 const deleteFromCloudinary = async (publicId) => {
   if (!publicId) return null;
+  const cloudName = getCloudName();
   if (
-    !process.env.CLOUDINARY_CLOUD_NAME ||
-    process.env.CLOUDINARY_CLOUD_NAME === 'mock_cloud' ||
+    !cloudName ||
+    cloudName === 'mock_cloud' ||
     process.env.NODE_ENV === 'test'
   ) {
     return { result: 'ok' };
