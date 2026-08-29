@@ -16,14 +16,46 @@ const categoryRoutes = require('./routes/categoryRoutes');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Enable Trust Proxy for Render / Production Reverse Proxies (required for secure cookies)
+app.set('trust proxy', 1);
+
 // Connect to Database
 connectDB();
 
-// Middlewares
-app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
-  credentials: true
-}));
+// Dynamic CORS configuration for Vercel + Local development
+const configuredOrigins = process.env.CLIENT_URL
+  ? process.env.CLIENT_URL.split(',').map((url) => url.trim().replace(/\/$/, ''))
+  : [];
+
+const defaultOrigins = ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173'];
+const allowedOrigins = [...defaultOrigins, ...configuredOrigins];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow server-to-server, Postman, or local curl requests with no origin header
+      if (!origin) return callback(null, true);
+
+      // Check allowed list or Vercel deployment domains (*.vercel.app)
+      const isAllowed =
+        allowedOrigins.includes(origin) ||
+        origin.endsWith('.vercel.app') ||
+        origin.includes('localhost') ||
+        origin.includes('127.0.0.1');
+
+      if (isAllowed) {
+        callback(null, origin);
+      } else {
+        // Fallback to origin to allow custom domain deployment
+        callback(null, origin);
+      }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
+  })
+);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -43,7 +75,9 @@ app.use('/api/categories', categoryRoutes);
 app.get('/', (req, res) => {
   res.json({
     success: true,
-    message: 'Welcome to Role-Based E-Commerce Platform API'
+    message: 'Welcome to Role-Based E-Commerce Platform API',
+    environment: process.env.NODE_ENV || 'development',
+    status: 'healthy',
   });
 });
 
@@ -51,7 +85,7 @@ app.get('/', (req, res) => {
 app.use((req, res) => {
   res.status(404).json({
     success: false,
-    message: 'Endpoint not found'
+    message: 'Endpoint not found',
   });
 });
 
@@ -61,7 +95,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({
     success: false,
     message: 'Internal server error',
-    error: process.env.NODE_ENV === 'production' ? {} : err.message
+    error: process.env.NODE_ENV === 'production' ? {} : err.message,
   });
 });
 
