@@ -130,7 +130,7 @@ const Navbar = () => {
                 >
                   <Heart className="w-5 h-5" />
                   {wishlistCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-violet-600 text-white text-[10px] font-black w-4.5 h-4.5 rounded-full flex items-center justify-center shadow-xs animate-in zoom-in">
+                    <span className="absolute -top-1 -right-1 bg-violet-600 text-white text-[11px] font-bold min-w-[19px] h-[19px] px-1 rounded-full flex items-center justify-center shadow-sm leading-none z-10 animate-in zoom-in">
                       {wishlistCount}
                     </span>
                   )}
@@ -149,7 +149,7 @@ const Navbar = () => {
                 >
                   <ShoppingCart className="w-5 h-5" />
                   {cartCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-indigo-600 text-white text-[10px] font-black w-4.5 h-4.5 rounded-full flex items-center justify-center shadow-xs animate-in zoom-in">
+                    <span className="absolute -top-1 -right-1 bg-indigo-600 text-white text-[11px] font-bold min-w-[19px] h-[19px] px-1 rounded-full flex items-center justify-center shadow-sm leading-none z-10 animate-in zoom-in">
                       {cartCount}
                     </span>
                   )}
