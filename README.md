@@ -1,26 +1,27 @@
 # Role-Based E-Commerce Platform
 
-A production-grade, full-stack Role-Based E-Commerce application built with React, Node.js, Express, MongoDB, and Tailwind CSS. The platform features strict backend Role-Based Access Control (RBAC), multi-role dashboards, dynamic catalog filtering, atomic cart/wishlist management, Cloudinary media uploads, and Razorpay test payment integration with HMAC-SHA256 signature verification.
+A production-ready, full-stack Role-Based E-Commerce application built with React, Node.js, Express, MongoDB, and Tailwind CSS. The platform features strict backend Role-Based Access Control (RBAC), multi-role dashboards, dynamic catalog filtering, atomic cart/wishlist management, Cloudinary media uploads, and Razorpay test payment integration with HMAC-SHA256 signature verification.
 
 ---
 
-## 🌐 Live Application Links
+## 🌐 Live Application URLs
 
-- **Frontend Deployment (Vercel)**: [https://role-based-ecommerce.vercel.app](https://role-based-ecommerce.vercel.app) *(or your deployed Vercel URL)*
-- **Backend API Deployment (Render)**: [https://role-based-ecommerce-api.onrender.com](https://role-based-ecommerce-api.onrender.com) *(or your deployed Render URL)*
-- **Health Check Endpoint**: `GET /api/health`
+- **Frontend Live (Vercel)**: [https://role-based-ecommerce-assignment-1dsehak8p.vercel.app/](https://role-based-ecommerce-assignment-1dsehak8p.vercel.app/)
+- **Backend API Live (Render)**: [https://role-based-ecommerce-api.onrender.com/](https://role-based-ecommerce-api.onrender.com/)
+- **API Health Check**: [https://role-based-ecommerce-api.onrender.com/api/health](https://role-based-ecommerce-api.onrender.com/api/health)
+- **Public Products Catalog API**: [https://role-based-ecommerce-api.onrender.com/api/products](https://role-based-ecommerce-api.onrender.com/api/products)
 
 ---
 
 ## 🔐 Test Login Credentials
 
-| Role | Email | Password | Permissions Summary |
+| Role | Email | Password | Permissions & Features |
 |---|---|---|---|
-| **Admin** | `admin@example.com` | `Demo@12345` | Store-wide KPI metrics, manage any product, manage user roles (promote/demote), view all store orders. |
-| **Sales Person** | `sales@example.com` | `Demo@12345` | Add new products, edit/delete **only** own products, view sales dashboard and orders containing their items. |
-| **Customer (User)** | `user@example.com` | `Demo@12345` | Browse catalog, search & filter, manage cart and wishlist, checkout with Razorpay, view personal order receipts. |
+| **Admin** | `admin@example.com` | `Demo@12345` | Store-wide KPI metrics, manage/edit/delete any product, manage user roles (promote/demote), view all store orders. |
+| **Sales Person** | `sales@example.com` | `Demo@12345` | Add new products, edit/delete **only** own products, view seller dashboard with personal revenue, units sold, and orders containing their items. |
+| **Customer (User)** | `user@example.com` | `Demo@12345` | Browse catalog, search & filter, manage cart and wishlist, checkout with Razorpay test mode, view personal itemized order receipts. |
 
-> **Note**: You can automatically populate these accounts and sample products by running `npm run seed` in the `backend` directory.
+> **Note**: Demo data and test accounts are pre-seeded in the live database. You can also re-seed anytime by running `npm run seed` in the `backend` directory.
 
 ---
 
@@ -28,11 +29,11 @@ A production-grade, full-stack Role-Based E-Commerce application built with Reac
 
 - **Frontend**: React 18, Vite, Tailwind CSS, React Router v6, Axios, Lucide React
 - **Backend**: Node.js, Express.js (REST API, MVC Architecture)
-- **Database**: MongoDB (Atlas) with Mongoose ORM
-- **Authentication**: JWT stored in `HttpOnly`, `SameSite` secure cookies with bcrypt password hashing
-- **Media Storage**: Cloudinary (Multipart image upload via Multer memory storage)
+- **Database**: MongoDB Atlas with Mongoose ORM
+- **Authentication**: JWT stored in `HttpOnly`, `SameSite: 'none'`, `secure: true` cookies with bcrypt password hashing
+- **Media Storage**: Cloudinary (Multipart image upload via Multer memory buffer)
 - **Payments**: Razorpay Node SDK & Razorpay Standard Checkout (Test Mode)
-- **Deployment**: Render (Web Service) + Vercel (Static Web App)
+- **Deployment**: Render (Backend Web Service) + Vercel (Frontend Static SPA)
 
 ---
 
@@ -50,18 +51,16 @@ A production-grade, full-stack Role-Based E-Commerce application built with Reac
 | **Customer Orders** | Itemized order history (`/orders`) displaying purchased items, prices, transaction IDs, payment badges, and delivery status. | Complete |
 | **Sales Dashboard** | Seller analytics (`/sales/dashboard`) showing total seller revenue, units sold, product inventory management table with quick actions, and incoming customer orders. | Complete |
 | **Admin Superuser Console** | Store-wide KPI overview (`/admin/dashboard`) including gross revenue, total orders count, user directory with inline role mutation (`admin`, `sales`, `user`), and complete orders stream. | Complete |
-| **Responsive UI & Design** | Fully responsive layout with custom design tokens, mobile slide-over drawer navigation, product cards with discount tags, and clean footer matching the design system. | Complete |
+| **Responsive UI & Design** | Fully responsive layout with custom design tokens, mobile slide-over drawer navigation, product cards with discount tags, circular badge counters, and clean footer matching the design system. | Complete |
 
 ---
 
-## 🚀 Getting Started & Local Setup
+## 🚀 Local Setup & Installation
 
 ### Prerequisites
 - Node.js (v18 or higher)
 - npm or yarn
 - MongoDB Atlas cluster or local MongoDB instance
-- Cloudinary account credentials
-- Razorpay test mode API keys
 
 ---
 
@@ -93,7 +92,7 @@ A production-grade, full-stack Role-Based E-Commerce application built with Reac
    RAZORPAY_KEY_SECRET=your_key_secret
    CLIENT_URL=http://localhost:5173
    ```
-5. Seed initial demo users & products:
+5. Seed initial demo users & sample products:
    ```bash
    npm run seed
    ```
@@ -132,9 +131,23 @@ A production-grade, full-stack Role-Based E-Commerce application built with Reac
 
 ---
 
+## 💳 Razorpay Test Payment Flow
+
+1. Log in as a Customer (`user@example.com` / `Demo@12345`).
+2. Add products to the cart from the Catalog (`/products`).
+3. Open Cart (`/cart`) and click **Proceed to Checkout**.
+4. In the Razorpay Test Mode modal:
+   - **Card Number**: `4111 1111 1111 1111`
+   - **Expiry**: `12/28` (any future date)
+   - **CVV**: `123`
+   - **OTP**: Enter `123456` or click **Success**.
+5. Upon successful HMAC signature verification, stock decrements atomically, the cart clears, and the receipt displays on `/order-success/:orderId`.
+
+---
+
 ## 🧪 Automated Verification & Test Suites
 
-The backend includes comprehensive test suites running against live test servers and MongoDB verifying every requirement:
+The repository contains automated test suites verifying all backend routes and RBAC assertions:
 
 ```bash
 # Run Auth & RBAC Security Suite (26 tests)
@@ -165,7 +178,7 @@ node src/test_dashboards.js
 - **Atomic Cart & Wishlist**: Multi-item customer cart and deduplicated wishlist with real-time stock validation.
 - **Razorpay Test Integration**: End-to-end payment lifecycle with HMAC SHA256 cryptographic verification before order commitment and stock decrement.
 - **Three Specialized Dashboards**: User order history receipts, Sales person seller metrics and order item views, and Admin store-wide analytics with user role management.
-- **Responsive Modern UI**: Built with custom design tokens, dual font pairing (`Inter` + `Space Grotesk`), mobile drawer navigation, and responsive tables.
+- **Responsive Modern UI**: Built with custom design tokens, dual font pairing (`Inter` + `Space Grotesk`), mobile drawer navigation, circular badge counters, and responsive tables.
 
 ### 2. Challenges Faced & Solutions
 1. **Preventing Unauthorized Product Mutation**:
@@ -174,9 +187,9 @@ node src/test_dashboards.js
 2. **Preventing Tampered Razorpay Payment Callbacks**:
    - *Challenge*: Malicious users could trigger fake success callbacks on the client without transferring funds.
    - *Solution*: The backend creates the order using Razorpay SDK, receives the Razorpay signature upon completion, and generates `crypto.createHmac('sha256', secret).update(order_id + '|' + payment_id).digest('hex')`. Orders are only created in the database if the signatures match identically.
-3. **Responsive Mobile Header & Navigation**:
-   - *Challenge*: Brand logo and auth controls crowded narrow mobile screens.
-   - *Solution*: Implemented a slide-over mobile drawer supporting all user roles and guests, scaled logo typography responsively, and added `flex-shrink-0` bounds to prevent clipping.
+3. **Cross-Domain Cookies & SPA Routing on Vercel/Render**:
+   - *Challenge*: Deploying backend on Render and frontend on Vercel requires cross-domain cookies and SPA route rewriting.
+   - *Solution*: Configured `app.set('trust proxy', 1)`, dynamic CORS origin matching, `sameSite: 'none'`, `secure: true` cookie settings, and added `vercel.json` rewrite rules.
 
 ### 3. Known Assumptions & Limitations
 - **Payment Gateway**: Razorpay is configured in Test Mode (`rzp_test_...`) using dummy card/UPI credentials for testing purposes.
@@ -211,6 +224,7 @@ role-based-ecommerce-assignment/
 │   ├── .env.example
 │   ├── package.json
 │   ├── tailwind.config.js
+│   ├── vercel.json         # Vercel SPA routing rewrites
 │   └── vite.config.js
 ├── .env.example
 ├── .gitignore
